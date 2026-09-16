@@ -47,7 +47,7 @@ class MarketScopingController extends Controller
     {
         $user = $this->procurementUser($request);
         $data = $request->validated();
-        $data['organization_id'] = $user->organization_id;
+        $data['organization_id'] = $this->organizationId($request);
         $data['prepared_by'] = $user->id;
         $data['status'] = PlanningStatus::Draft->value;
 
@@ -116,7 +116,13 @@ class MarketScopingController extends Controller
 
     private function organizationId(Request $request): int
     {
-        return $this->procurementUser($request)->organization_id;
+        $organizationId = $this->procurementUser($request)->organization_id;
+
+        if ($organizationId === null) {
+            abort(403, 'An organization assignment is required.');
+        }
+
+        return $organizationId;
     }
 
     private function procurementUser(Request $request): User
