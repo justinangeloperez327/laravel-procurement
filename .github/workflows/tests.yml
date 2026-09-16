@@ -34,8 +34,5 @@ jobs:
       - name: Setup Application
         run: composer setup
 
-      - name: Capture formatter diff
-        run: |
-          npm run check:fix
-          git diff -- resources/js/components/planning/market-scoping-form.tsx resources/js/pages/planning/market-scopings/create.tsx resources/js/pages/planning/market-scopings/edit.tsx resources/js/pages/planning/market-scopings/index.tsx
-          exit 1
+      - name: Run CI Checks
+        run: composer ci:check
