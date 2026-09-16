@@ -1,6 +1,13 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid, Search } from 'lucide-react';
+import {
+    BookOpen,
+    ClipboardList,
+    FolderGit2,
+    LayoutGrid,
+    Search,
+} from 'lucide-react';
 import MarketScopingController from '@/actions/App/Http/Controllers/Planning/MarketScopingController';
+import PpmpController from '@/actions/App/Http/Controllers/Planning/PpmpController';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -27,6 +34,11 @@ const mainNavItems: NavItem[] = [
         title: 'Market Scoping',
         href: MarketScopingController.index(),
         icon: Search,
+    },
+    {
+        title: 'PPMP',
+        href: PpmpController.index(),
+        icon: ClipboardList,
     },
 ];
 
