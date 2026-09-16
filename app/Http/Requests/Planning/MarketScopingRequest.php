@@ -22,7 +22,7 @@ class MarketScopingRequest extends FormRequest
         $routeMarketScoping = $this->route('market_scoping');
         $marketScopingId = $routeMarketScoping instanceof MarketScoping
             ? $routeMarketScoping->getKey()
-            : $routeMarketScoping;
+            : null;
 
         return [
             'reference_no' => [
