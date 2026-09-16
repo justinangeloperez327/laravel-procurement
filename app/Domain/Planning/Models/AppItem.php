@@ -17,10 +17,14 @@ class AppItem extends Model
         'title',
         'description',
         'procurement_category',
+        'is_early_procurement_activity',
+        'bid_evaluation_criteria',
         'estimated_budget',
         'funding_source',
         'schedule_start',
         'schedule_end',
+        'procurement_strategy_tools',
+        'remarks',
         'status',
     ];
 
@@ -28,9 +32,11 @@ class AppItem extends Model
     {
         return [
             'procurement_category' => ProcurementCategory::class,
+            'is_early_procurement_activity' => 'boolean',
             'estimated_budget' => 'decimal:2',
             'schedule_start' => 'date',
             'schedule_end' => 'date',
+            'procurement_strategy_tools' => 'array',
         ];
     }
 
