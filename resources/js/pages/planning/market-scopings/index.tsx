@@ -66,7 +66,7 @@ export default function MarketScopingIndex({
                         </Button>
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+                    <div className="bg-card overflow-hidden rounded-xl border shadow-xs">
                         {marketScopings.data.length === 0 ? (
                             <div className="flex min-h-64 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
                                 <div>
@@ -74,12 +74,14 @@ export default function MarketScopingIndex({
                                         No market scoping records yet
                                     </p>
                                     <p className="text-muted-foreground mt-1 text-sm">
-                                        Create the first market scoping record to
-                                        begin procurement planning.
+                                        Create the first market scoping record
+                                        to begin procurement planning.
                                     </p>
                                 </div>
                                 <Button asChild variant="outline">
-                                    <Link href={MarketScopingController.create()}>
+                                    <Link
+                                        href={MarketScopingController.create()}
+                                    >
                                         <Plus />
                                         Create record
                                     </Link>
@@ -131,9 +133,12 @@ export default function MarketScopingIndex({
                                                     {item.fiscal_year.year}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {item.organizational_unit.code
+                                                    {item.organizational_unit
+                                                        .code
                                                         ? `${item.organizational_unit.code} — ${item.organizational_unit.name}`
-                                                        : item.organizational_unit.name}
+                                                        : item
+                                                              .organizational_unit
+                                                              .name}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     {humanize(
@@ -178,8 +183,8 @@ export default function MarketScopingIndex({
                     {marketScopings.total > 0 && (
                         <div className="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                             <p className="text-muted-foreground">
-                                Showing {marketScopings.from}–{marketScopings.to}{' '}
-                                of {marketScopings.total}
+                                Showing {marketScopings.from}–
+                                {marketScopings.to} of {marketScopings.total}
                             </p>
                             <div className="flex gap-2">
                                 <Button
