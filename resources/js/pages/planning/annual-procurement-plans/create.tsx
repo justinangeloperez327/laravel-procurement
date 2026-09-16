@@ -64,9 +64,7 @@ export default function CreateAnnualProcurementPlan({
                             procurementMethods={procurementMethods}
                             appTypes={appTypes}
                             bidEvaluationCriteria={bidEvaluationCriteria}
-                            procurementStrategyTools={
-                                procurementStrategyTools
-                            }
+                            procurementStrategyTools={procurementStrategyTools}
                         />
                     </div>
                 </div>

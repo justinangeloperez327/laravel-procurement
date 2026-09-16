@@ -91,9 +91,7 @@ export default function EditAnnualProcurementPlan({
                             procurementMethods={procurementMethods}
                             appTypes={appTypes}
                             bidEvaluationCriteria={bidEvaluationCriteria}
-                            procurementStrategyTools={
-                                procurementStrategyTools
-                            }
+                            procurementStrategyTools={procurementStrategyTools}
                             plan={plan}
                         />
                     </div>

@@ -303,12 +303,10 @@ export default function AnnualProcurementPlanForm({
                                   : item.procurement_method_id,
                           title: source.title,
                           description: source.description ?? '',
-                          procurement_category:
-                              source.procurement_category,
+                          procurement_category: source.procurement_category,
                           estimated_budget: source.estimated_budget,
                           funding_source: source.funding_source ?? '',
-                          schedule_start:
-                              item.schedule_start || schedule.start,
+                          schedule_start: item.schedule_start || schedule.start,
                           schedule_end: item.schedule_end || schedule.end,
                       }
                     : item,
@@ -323,9 +321,8 @@ export default function AnnualProcurementPlanForm({
                     return item;
                 }
 
-                const selected = item.procurement_strategy_tools.includes(
-                    strategy,
-                );
+                const selected =
+                    item.procurement_strategy_tools.includes(strategy);
 
                 return {
                     ...item,
@@ -522,7 +519,9 @@ export default function AnnualProcurementPlanForm({
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    disabled={items.length === 1}
+                                                    disabled={
+                                                        items.length === 1
+                                                    }
                                                     onClick={() =>
                                                         removeItem(index)
                                                     }
@@ -570,7 +569,9 @@ export default function AnnualProcurementPlanForm({
                                                                     item.ppmp_item_id,
                                                         )
                                                         .map(
-                                                            (eligibleSource) => (
+                                                            (
+                                                                eligibleSource,
+                                                            ) => (
                                                                 <option
                                                                     key={
                                                                         eligibleSource.id
@@ -702,7 +703,9 @@ export default function AnnualProcurementPlanForm({
                                                             event.target.value,
                                                         )
                                                     }
-                                                    className={textareaClassName}
+                                                    className={
+                                                        textareaClassName
+                                                    }
                                                     rows={2}
                                                 />
                                                 <InputError
@@ -743,7 +746,9 @@ export default function AnnualProcurementPlanForm({
                                                         (method) => (
                                                             <option
                                                                 key={method.id}
-                                                                value={method.id}
+                                                                value={
+                                                                    method.id
+                                                                }
                                                             >
                                                                 {method.code} —{' '}
                                                                 {method.name}
@@ -782,8 +787,12 @@ export default function AnnualProcurementPlanForm({
                                                     className={selectClassName}
                                                     required
                                                 >
-                                                    <option value="0">No</option>
-                                                    <option value="1">Yes</option>
+                                                    <option value="0">
+                                                        No
+                                                    </option>
+                                                    <option value="1">
+                                                        Yes
+                                                    </option>
                                                 </select>
                                                 <InputError
                                                     message={
@@ -822,7 +831,9 @@ export default function AnnualProcurementPlanForm({
                                                         (criterion) => (
                                                             <option
                                                                 key={criterion}
-                                                                value={criterion}
+                                                                value={
+                                                                    criterion
+                                                                }
                                                             >
                                                                 {criterion}
                                                             </option>
@@ -842,7 +853,8 @@ export default function AnnualProcurementPlanForm({
                                                 <Label
                                                     htmlFor={`app-item-${index}-start`}
                                                 >
-                                                    Start of Procurement Activity
+                                                    Start of Procurement
+                                                    Activity
                                                 </Label>
                                                 <Input
                                                     id={`app-item-${index}-start`}
@@ -936,7 +948,9 @@ export default function AnnualProcurementPlanForm({
                                                     type="number"
                                                     min="0"
                                                     step="0.01"
-                                                    value={item.estimated_budget}
+                                                    value={
+                                                        item.estimated_budget
+                                                    }
                                                     onChange={(event) =>
                                                         updateItem(
                                                             index,
@@ -1017,7 +1031,9 @@ export default function AnnualProcurementPlanForm({
                                                             event.target.value,
                                                         )
                                                     }
-                                                    className={textareaClassName}
+                                                    className={
+                                                        textareaClassName
+                                                    }
                                                     rows={2}
                                                 />
                                                 <InputError
