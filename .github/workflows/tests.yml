@@ -34,5 +34,8 @@ jobs:
       - name: Setup Application
         run: composer setup
 
-      - name: Run CI Checks
-        run: composer ci:check
+      - name: Capture formatter diff
+        run: |
+          npm run check:fix
+          git diff -- resources/js/components/planning/ppmp-form.tsx resources/js/pages/planning/ppmps/index.tsx
+          exit 1
