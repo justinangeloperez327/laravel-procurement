@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: procurement_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_pgsql
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          sed -i 's/DB_DATABASE=laravel_procurement/DB_DATABASE=procurement_test/' .env
+          sed -i 's/DB_PASSWORD=/DB_PASSWORD=postgres/' .env
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run PHP tests
+        run: php artisan test
+
+      - name: Run static analysis
+        run: vendor/bin/phpstan analyse --memory-limit=1G
+
+      - name: Type check frontend
+        run: npm run typecheck
+
+      - name: Build frontend
+        run: npm run build
