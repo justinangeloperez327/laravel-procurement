@@ -62,7 +62,7 @@ export default function EditPpmp({
                 <div className="mx-auto w-full max-w-7xl">
                     <Heading
                         title={`Edit ${ppmp.reference_no}`}
-                        description="Update this PPMP while it remains in draft status."
+                        description="Update the PPMP header and procurement requirements while the plan remains in draft status."
                     />
 
                     <div className="bg-card rounded-xl border p-5 shadow-xs md:p-6">
