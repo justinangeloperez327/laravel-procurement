@@ -121,8 +121,8 @@ function appRecord(
         'bid_evaluation_criteria' => 'LCRB',
         'estimated_budget' => 500000,
         'funding_source' => 'GAA',
-        'schedule_start' => '2027-04-01 00:00:00',
-        'schedule_end' => '2027-06-01 00:00:00',
+        'schedule_start' => '2027-04-01',
+        'schedule_end' => '2027-06-01',
         'procurement_strategy_tools' => ['Framework Agreement'],
         'remarks' => 'Initial APP line.',
         'status' => 'planned',
@@ -218,13 +218,15 @@ test('user can create an Indicative APP from a submitted PPMP', function () {
         'procurement_method_id' => $method->id,
         'is_early_procurement_activity' => 1,
         'bid_evaluation_criteria' => 'LCRB',
-        'schedule_start' => '2027-04-01',
-        'schedule_end' => '2027-06-01',
         'estimated_budget' => 500000,
         'status' => 'planned',
     ]);
 
-    expect($plan->items()->firstOrFail()->procurement_strategy_tools)
+    $storedItem = $plan->items()->firstOrFail();
+
+    expect($storedItem->schedule_start?->toDateString())->toBe('2027-04-01')
+        ->and($storedItem->schedule_end?->toDateString())->toBe('2027-06-01')
+        ->and($storedItem->procurement_strategy_tools)
         ->toBe(['Framework Agreement', 'Pooled Procurement']);
 });
 
