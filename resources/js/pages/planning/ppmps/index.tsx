@@ -74,8 +74,8 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                 <div>
                                     <p className="font-medium">No PPMPs yet</p>
                                     <p className="text-muted-foreground mt-1 text-sm">
-                                        Create a PPMP to begin formal procurement
-                                        planning for a fiscal year.
+                                        Create a PPMP to begin formal
+                                        procurement planning for a fiscal year.
                                     </p>
                                 </div>
                                 <Button asChild variant="outline">
@@ -137,9 +137,12 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                                     {ppmp.fiscal_year.year}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {ppmp.organizational_unit.code
+                                                    {ppmp.organizational_unit
+                                                        .code
                                                         ? `${ppmp.organizational_unit.code} — ${ppmp.organizational_unit.name}`
-                                                        : ppmp.organizational_unit.name}
+                                                        : ppmp
+                                                              .organizational_unit
+                                                              .name}
                                                 </td>
                                                 <td className="px-4 py-3 text-right tabular-nums">
                                                     {ppmp.items_count}
