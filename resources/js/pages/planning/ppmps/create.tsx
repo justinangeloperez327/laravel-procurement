@@ -35,7 +35,7 @@ export default function CreatePpmp({
                 <div className="mx-auto w-full max-w-7xl">
                     <Heading
                         title="New PPMP"
-                        description="Prepare a Project Procurement Management Plan and its planned procurement requirements."
+                        description="Prepare a Project Procurement Management Plan with its planned procurement requirements."
                     />
 
                     <div className="bg-card rounded-xl border p-5 shadow-xs md:p-6">
