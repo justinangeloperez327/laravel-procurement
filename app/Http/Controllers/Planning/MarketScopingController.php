@@ -10,6 +10,7 @@ use App\Domain\Planning\Models\MarketScoping;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Planning\MarketScopingRequest;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -83,8 +84,8 @@ class MarketScopingController extends Controller
 
     /**
      * @return array{
-     *     fiscalYears: \Illuminate\Database\Eloquent\Collection<int, FiscalYear>,
-     *     organizationalUnits: \Illuminate\Database\Eloquent\Collection<int, OrganizationalUnit>,
+     *     fiscalYears: Collection<int, FiscalYear>,
+     *     organizationalUnits: Collection<int, OrganizationalUnit>,
      *     categories: array<int, array{value: string, label: string}>
      * }
      */
