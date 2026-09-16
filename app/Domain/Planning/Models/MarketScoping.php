@@ -7,15 +7,12 @@ use App\Domain\Organization\Models\Organization;
 use App\Domain\Organization\Models\OrganizationalUnit;
 use App\Domain\Planning\Enums\PlanningStatus;
 use App\Domain\Planning\Enums\ProcurementCategory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MarketScoping extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'organization_id',
         'fiscal_year_id',
@@ -44,21 +41,25 @@ class MarketScoping extends Model
         ];
     }
 
+    /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    /** @return BelongsTo<FiscalYear, $this> */
     public function fiscalYear(): BelongsTo
     {
         return $this->belongsTo(FiscalYear::class);
     }
 
+    /** @return BelongsTo<OrganizationalUnit, $this> */
     public function organizationalUnit(): BelongsTo
     {
         return $this->belongsTo(OrganizationalUnit::class);
     }
 
+    /** @return HasMany<MarketScopingSource, $this> */
     public function sources(): HasMany
     {
         return $this->hasMany(MarketScopingSource::class);

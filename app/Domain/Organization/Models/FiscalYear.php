@@ -2,14 +2,11 @@
 
 namespace App\Domain\Organization\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FiscalYear extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'organization_id',
         'year',
@@ -27,6 +24,7 @@ class FiscalYear extends Model
         ];
     }
 
+    /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);

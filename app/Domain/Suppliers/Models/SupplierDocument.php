@@ -3,14 +3,11 @@
 namespace App\Domain\Suppliers\Models;
 
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierDocument extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'supplier_id',
         'document_type',
@@ -33,11 +30,13 @@ class SupplierDocument extends Model
         ];
     }
 
+    /** @return BelongsTo<Supplier, $this> */
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function verifier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');

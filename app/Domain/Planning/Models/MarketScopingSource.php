@@ -3,14 +3,11 @@
 namespace App\Domain\Planning\Models;
 
 use App\Domain\Suppliers\Models\Supplier;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MarketScopingSource extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'market_scoping_id',
         'supplier_id',
@@ -30,11 +27,13 @@ class MarketScopingSource extends Model
         ];
     }
 
+    /** @return BelongsTo<MarketScoping, $this> */
     public function marketScoping(): BelongsTo
     {
         return $this->belongsTo(MarketScoping::class);
     }
 
+    /** @return BelongsTo<Supplier, $this> */
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);

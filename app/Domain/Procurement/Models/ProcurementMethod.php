@@ -2,13 +2,10 @@
 
 namespace App\Domain\Procurement\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ProcurementMethod extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'code',
         'name',

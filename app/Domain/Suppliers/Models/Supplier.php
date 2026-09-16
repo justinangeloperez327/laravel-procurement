@@ -3,15 +3,12 @@
 namespace App\Domain\Suppliers\Models;
 
 use App\Domain\Organization\Models\Organization;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'organization_id',
         'supplier_code',
@@ -28,11 +25,13 @@ class Supplier extends Model
         'status',
     ];
 
+    /** @return BelongsTo<Organization, $this> */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    /** @return HasMany<SupplierDocument, $this> */
     public function documents(): HasMany
     {
         return $this->hasMany(SupplierDocument::class);
