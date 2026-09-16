@@ -1,11 +1,13 @@
 import { Link } from '@inertiajs/react';
 import {
     BookOpen,
+    Calendar,
     ClipboardList,
     FolderGit2,
     LayoutGrid,
     Search,
 } from 'lucide-react';
+import AnnualProcurementPlanController from '@/actions/App/Http/Controllers/Planning/AnnualProcurementPlanController';
 import MarketScopingController from '@/actions/App/Http/Controllers/Planning/MarketScopingController';
 import PpmpController from '@/actions/App/Http/Controllers/Planning/PpmpController';
 import AppLogo from '@/components/app-logo';
@@ -39,6 +41,11 @@ const mainNavItems: NavItem[] = [
         title: 'PPMP',
         href: PpmpController.index(),
         icon: ClipboardList,
+    },
+    {
+        title: 'Annual Procurement Plan',
+        href: AnnualProcurementPlanController.index(),
+        icon: Calendar,
     },
 ];
 
