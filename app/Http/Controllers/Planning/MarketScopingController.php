@@ -140,6 +140,10 @@ class MarketScopingController extends Controller
     private function guardEditableRecord(MarketScoping $marketScoping, int $organizationId): void
     {
         abort_unless($marketScoping->organization_id === $organizationId, 404);
-        abort_unless($marketScoping->status === PlanningStatus::Draft, 409, 'Only draft market scopings can be edited.');
+        abort_unless(
+            $marketScoping->getRawOriginal('status') === PlanningStatus::Draft->value,
+            409,
+            'Only draft market scopings can be edited.',
+        );
     }
 }
