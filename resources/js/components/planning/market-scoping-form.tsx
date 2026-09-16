@@ -91,7 +91,10 @@ export default function MarketScopingForm({
                                 }
                                 required
                             >
-                                <SelectTrigger id="fiscal_year_id" className="w-full">
+                                <SelectTrigger
+                                    id="fiscal_year_id"
+                                    className="w-full"
+                                >
                                     <SelectValue placeholder="Select fiscal year" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -142,7 +145,9 @@ export default function MarketScopingForm({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={errors.organizational_unit_id} />
+                            <InputError
+                                message={errors.organizational_unit_id}
+                            />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
@@ -151,7 +156,9 @@ export default function MarketScopingForm({
                             </Label>
                             <Select
                                 name="procurement_category"
-                                defaultValue={marketScoping?.procurement_category}
+                                defaultValue={
+                                    marketScoping?.procurement_category
+                                }
                                 required
                             >
                                 <SelectTrigger
@@ -177,7 +184,9 @@ export default function MarketScopingForm({
 
                     <div className="grid gap-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="description">Requirement Description</Label>
+                            <Label htmlFor="description">
+                                Requirement Description
+                            </Label>
                             <textarea
                                 id="description"
                                 name="description"
@@ -190,11 +199,15 @@ export default function MarketScopingForm({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="market_findings">Market Findings</Label>
+                            <Label htmlFor="market_findings">
+                                Market Findings
+                            </Label>
                             <textarea
                                 id="market_findings"
                                 name="market_findings"
-                                defaultValue={marketScoping?.market_findings ?? ''}
+                                defaultValue={
+                                    marketScoping?.market_findings ?? ''
+                                }
                                 rows={5}
                                 className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive min-h-28 w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
                                 placeholder="Summarize supplier availability, indicative pricing, market capacity, risks, and other relevant findings."
@@ -222,7 +235,9 @@ export default function MarketScopingForm({
 
                     <div className="flex items-center justify-end gap-3 border-t pt-6">
                         <Button variant="outline" asChild>
-                            <Link href={MarketScopingController.index()}>Cancel</Link>
+                            <Link href={MarketScopingController.index()}>
+                                Cancel
+                            </Link>
                         </Button>
                         <Button type="submit" disabled={processing}>
                             {marketScoping ? 'Update draft' : 'Save draft'}
