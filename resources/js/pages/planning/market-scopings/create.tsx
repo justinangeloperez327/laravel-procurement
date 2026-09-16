@@ -35,7 +35,7 @@ export default function CreateMarketScoping({
                         description="Document the market basis for a planned procurement before PPMP preparation."
                     />
 
-                    <div className="rounded-xl border bg-card p-5 shadow-xs md:p-6">
+                    <div className="bg-card rounded-xl border p-5 shadow-xs md:p-6">
                         <MarketScopingForm
                             fiscalYears={fiscalYears}
                             organizationalUnits={organizationalUnits}
