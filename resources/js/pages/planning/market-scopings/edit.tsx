@@ -49,7 +49,7 @@ export default function EditMarketScoping({
                         description="Update the draft market scoping record before it enters review."
                     />
 
-                    <div className="rounded-xl border bg-card p-5 shadow-xs md:p-6">
+                    <div className="bg-card rounded-xl border p-5 shadow-xs md:p-6">
                         <MarketScopingForm
                             fiscalYears={fiscalYears}
                             organizationalUnits={organizationalUnits}
