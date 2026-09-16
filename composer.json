@@ -9,7 +9,7 @@
         "php": "^8.4",
         "inertiajs/inertia-laravel": "^3.3",
         "laravel/fortify": "^1.39",
-        "laravel/framework": "^13.23",
+        "laravel/framework": "^13.30",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.21",
         "predis/predis": "^3.0",
