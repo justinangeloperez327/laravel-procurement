@@ -56,7 +56,7 @@ export default function AnnualProcurementPlanIndex({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <Heading
                             title="Annual Procurement Plans"
-                            description="Consolidate eligible PPMP requirements into Indicative, Final, and Updated APPs."
+                            description="Consolidate eligible PPMP requirements into Indicative, Final, or Updated APPs for the annual procurement cycle."
                         />
 
                         <Button asChild>
