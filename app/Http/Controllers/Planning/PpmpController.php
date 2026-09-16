@@ -54,6 +54,7 @@ class PpmpController extends Controller
         $user = $this->procurementUser($request);
         $organizationId = $this->organizationId($request);
         $validated = $request->validated();
+        /** @var array<int, array<string, mixed>> $items */
         $items = $validated['items'];
         unset($validated['items']);
 
@@ -92,6 +93,7 @@ class PpmpController extends Controller
         $organizationId = $this->organizationId($request);
         $this->guardEditableRecord($ppmp, $organizationId);
         $validated = $request->validated();
+        /** @var array<int, array<string, mixed>> $items */
         $items = $validated['items'];
         unset($validated['items']);
 
