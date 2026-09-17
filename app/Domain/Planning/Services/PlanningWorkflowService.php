@@ -52,7 +52,7 @@ class PlanningWorkflowService
                 ? $this->transitionPpmp($actor, $subject, $action, $fromStatus)
                 : $this->transitionApp($actor, $subject, $action, $fromStatus);
 
-            $subject->status = $toStatus;
+            $subject->setAttribute('status', $toStatus->value);
             $subject->save();
 
             PlanningWorkflowEvent::query()->create([
@@ -153,7 +153,7 @@ class PlanningWorkflowService
 
         if ($action === PlanningWorkflowAction::Approved) {
             $this->requireStatus($fromStatus, [PlanningStatus::UnderReview]);
-            $ppmp->approved_by = $actor->id;
+            $ppmp->setAttribute('approved_by', $actor->id);
             $ppmp->approved_at = now();
 
             return PlanningStatus::Approved;
@@ -191,7 +191,7 @@ class PlanningWorkflowService
         if ($action === PlanningWorkflowAction::Recommended) {
             $this->requireStatus($fromStatus, [PlanningStatus::Submitted]);
             $this->requireRole($actor, ProcurementRole::BacChairperson);
-            $plan->recommended_by = $actor->id;
+            $plan->setAttribute('recommended_by', $actor->id);
             $plan->recommended_at = now();
 
             return PlanningStatus::Recommended;
@@ -200,7 +200,7 @@ class PlanningWorkflowService
         if ($action === PlanningWorkflowAction::Approved) {
             $this->requireStatus($fromStatus, [PlanningStatus::Recommended]);
             $this->requireRole($actor, ProcurementRole::Hope);
-            $plan->approved_by = $actor->id;
+            $plan->setAttribute('approved_by', $actor->id);
             $plan->approved_at = now();
 
             return PlanningStatus::Approved;
