@@ -4,8 +4,10 @@ namespace App\Domain\Planning\Models;
 
 use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Procurement\Models\ProcurementMethod;
+use App\Domain\Procurement\Models\ProcurementProject;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AppItem extends Model
 {
@@ -56,5 +58,11 @@ class AppItem extends Model
     public function procurementMethod(): BelongsTo
     {
         return $this->belongsTo(ProcurementMethod::class);
+    }
+
+    /** @return HasMany<ProcurementProject, $this> */
+    public function procurementProjects(): HasMany
+    {
+        return $this->hasMany(ProcurementProject::class);
     }
 }
