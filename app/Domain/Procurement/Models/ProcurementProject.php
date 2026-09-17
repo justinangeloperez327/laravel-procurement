@@ -10,6 +10,7 @@ use App\Domain\Procurement\Enums\ProcurementStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProcurementProject extends Model
 {
@@ -77,5 +78,11 @@ class ProcurementProject extends Model
     public function procurementOfficer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'procurement_officer_id');
+    }
+
+    /** @return HasMany<ProcurementRound, $this> */
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(ProcurementRound::class)->orderBy('round_no');
     }
 }
