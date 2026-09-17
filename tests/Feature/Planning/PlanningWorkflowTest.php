@@ -253,7 +253,7 @@ test('APP return authority follows the current approval stage', function () {
         ->patch(route('planning.annual-procurement-plans.return', $plan), [
             'remarks' => 'This should not be allowed at the BAC stage.',
         ])
-        ->assertStatus(409);
+        ->assertForbidden();
 
     $this->actingAs($chair)
         ->patch(route('planning.annual-procurement-plans.return', $plan), [
