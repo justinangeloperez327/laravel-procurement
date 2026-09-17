@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Planning\MarketScopingController;
+use App\Http\Controllers\Planning\PpmpController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -10,6 +11,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::prefix('planning')->name('planning.')->group(function () {
         Route::resource('market-scopings', MarketScopingController::class)
+            ->except(['show', 'destroy']);
+        Route::resource('ppmps', PpmpController::class)
             ->except(['show', 'destroy']);
     });
 });
