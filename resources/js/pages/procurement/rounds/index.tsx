@@ -55,7 +55,9 @@ export default function ProcurementRoundsIndex({
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-3">
                             <Button asChild variant="ghost" size="sm">
-                                <Link href={ProcurementProjectController.index()}>
+                                <Link
+                                    href={ProcurementProjectController.index()}
+                                >
                                     <ArrowLeft />
                                     Procurement Projects
                                 </Link>
@@ -75,33 +77,44 @@ export default function ProcurementRoundsIndex({
 
                     <div className="grid gap-4 sm:grid-cols-3">
                         <div className="bg-card rounded-xl border p-4 shadow-xs">
-                            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                                 Project Status
                             </p>
-                            <p className="mt-2 font-semibold">{humanize(project.status)}</p>
+                            <p className="mt-2 font-semibold">
+                                {humanize(project.status)}
+                            </p>
                         </div>
                         <div className="bg-card rounded-xl border p-4 shadow-xs">
-                            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                                 Current Stage
                             </p>
                             <p className="mt-2 font-semibold">
-                                {project.current_stage ? humanize(project.current_stage) : 'Not started'}
+                                {project.current_stage
+                                    ? humanize(project.current_stage)
+                                    : 'Not started'}
                             </p>
                         </div>
                         <div className="bg-card rounded-xl border p-4 shadow-xs">
-                            <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
+                            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                                 Procurement Method
                             </p>
-                            <p className="mt-2 font-semibold">{project.procurement_method.name}</p>
+                            <p className="mt-2 font-semibold">
+                                {project.procurement_method.name}
+                            </p>
                         </div>
                     </div>
 
                     <div className="bg-card overflow-hidden rounded-xl border shadow-xs">
                         {project.rounds.length === 0 ? (
                             <div className="flex min-h-56 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-                                <p className="font-medium">No procurement rounds yet</p>
+                                <p className="font-medium">
+                                    No procurement rounds yet
+                                </p>
                                 <p className="text-muted-foreground max-w-xl text-sm">
-                                    Start the first round to begin procurement preparation. Later rebids will be retained as separate rounds instead of overwriting prior history.
+                                    Start the first round to begin procurement
+                                    preparation. Later rebids will be retained
+                                    as separate rounds instead of overwriting
+                                    prior history.
                                 </p>
                             </div>
                         ) : (
@@ -109,23 +122,49 @@ export default function ProcurementRoundsIndex({
                                 <table className="w-full text-sm">
                                     <thead className="bg-muted/50 text-muted-foreground">
                                         <tr className="border-b text-left">
-                                            <th className="px-4 py-3 font-medium">Round</th>
-                                            <th className="px-4 py-3 font-medium">Method</th>
-                                            <th className="px-4 py-3 font-medium">Status</th>
-                                            <th className="px-4 py-3 font-medium">Created By</th>
-                                            <th className="px-4 py-3 font-medium">Reference</th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Round
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Method
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Created By
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Reference
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {project.rounds.map((round) => (
-                                            <tr key={round.id} className="border-b last:border-0">
-                                                <td className="px-4 py-3 font-medium">#{round.round_no}</td>
-                                                <td className="px-4 py-3">{round.procurement_method.name}</td>
-                                                <td className="px-4 py-3">
-                                                    <Badge variant="outline">{humanize(round.status)}</Badge>
+                                            <tr
+                                                key={round.id}
+                                                className="border-b last:border-0"
+                                            >
+                                                <td className="px-4 py-3 font-medium">
+                                                    #{round.round_no}
                                                 </td>
-                                                <td className="px-4 py-3">{round.creator.name}</td>
-                                                <td className="px-4 py-3">{round.reference_no ?? '—'}</td>
+                                                <td className="px-4 py-3">
+                                                    {
+                                                        round.procurement_method
+                                                            .name
+                                                    }
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <Badge variant="outline">
+                                                        {humanize(round.status)}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {round.creator.name}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {round.reference_no ?? '—'}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
