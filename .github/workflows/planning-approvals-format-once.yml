@@ -1,0 +1,40 @@
+name: planning-approvals-format-once
+
+on:
+  push:
+    branches:
+      - feat/planning-approvals
+    paths:
+      - .github/workflows/planning-approvals-format-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/planning-approvals
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Format workflow UI
+        run: npx vp check --fix resources/js/pages/planning/annual-procurement-plans/index.tsx resources/js/pages/planning/ppmps/index.tsx
+
+      - name: Commit formatted files and remove helper workflow
+        run: |
+          rm .github/workflows/planning-approvals-format-once.yml
+          git config user.name "Clover"
+          git config user.email "68591353+justinangeloperez327@users.noreply.github.com"
+          git add resources/js/pages/planning/annual-procurement-plans/index.tsx resources/js/pages/planning/ppmps/index.tsx .github/workflows/planning-approvals-format-once.yml
+          git commit -m "style: format planning approval UI"
+          git push origin HEAD:feat/planning-approvals
