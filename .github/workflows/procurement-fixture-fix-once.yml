@@ -1,0 +1,54 @@
+name: procurement-fixture-fix-once
+
+on:
+  push:
+    branches:
+      - feat/procurement-project-initiation
+    paths:
+      - .github/workflows/procurement-fixture-fix-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/procurement-project-initiation
+
+      - name: Link APP test fixtures to PPMP provenance
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('tests/Feature/Procurement/ProcurementProjectTest.php')
+          text = path.read_text()
+
+          old_import = "use App\\Domain\\Planning\\Models\\AppItem;\n"
+          new_import = old_import + "use App\\Domain\\Planning\\Models\\Ppmp;\n"
+          if "use App\\Domain\\Planning\\Models\\Ppmp;" not in text:
+              text = text.replace(old_import, new_import, 1)
+
+          marker = "    $plan = AnnualProcurementPlan::query()->create([\n"
+          ppmp_setup = """    $ppmp = Ppmp::query()->create([\n        'organization_id' => $context['organization']->id,\n        'fiscal_year_id' => $context['fiscalYear']->id,\n        'organizational_unit_id' => $context['unit']->id,\n        'reference_no' => \"PPMP-{$reference}\",\n        'title' => \"PPMP {$reference}\",\n        'version' => 1,\n        'status' => PlanningStatus::Approved->value,\n        'prepared_by' => $context['user']->id,\n    ]);\n\n    $ppmpItem = $ppmp->items()->create([\n        'recommended_procurement_method_id' => $context['method']->id,\n        'item_no' => '1',\n        'title' => \"Requirement {$reference}\",\n        'description' => 'Approved procurement requirement.',\n        'procurement_category' => ProcurementCategory::Goods->value,\n        'quantity' => 1,\n        'unit' => 'lot',\n        'estimated_unit_cost' => $budget,\n        'estimated_budget' => $budget,\n        'funding_source' => 'GAA',\n        'target_quarter' => 2,\n        'status' => PlanningStatus::Approved->value,\n    ]);\n\n"""
+          if "$ppmpItem = $ppmp->items()->create([" not in text:
+              text = text.replace(marker, ppmp_setup + marker, 1)
+
+          app_item_marker = "    return $plan->items()->create([\n        'procurement_method_id' => $context['method']->id,\n"
+          app_item_replacement = "    return $plan->items()->create([\n        'ppmp_item_id' => $ppmpItem->id,\n        'procurement_method_id' => $context['method']->id,\n"
+          text = text.replace(app_item_marker, app_item_replacement, 1)
+
+          path.write_text(text)
+          PY
+
+      - name: Commit fixture fix and remove helper workflow
+        run: |
+          rm .github/workflows/procurement-fixture-fix-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/Feature/Procurement/ProcurementProjectTest.php .github/workflows/procurement-fixture-fix-once.yml
+          git diff --cached --quiet || git commit -m "test: preserve APP to PPMP provenance in project fixtures"
+          git push
