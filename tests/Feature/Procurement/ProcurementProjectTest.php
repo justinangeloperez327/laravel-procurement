@@ -8,6 +8,7 @@ use App\Domain\Planning\Enums\PlanningStatus;
 use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\AppItem;
+use App\Domain\Planning\Models\Ppmp;
 use App\Domain\Procurement\Enums\ProcurementStatus;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Domain\Procurement\Models\ProcurementProject;
@@ -78,6 +79,32 @@ function procurementProjectAppItem(
     bool $epa = false,
     float $budget = 1_000_000,
 ): AppItem {
+    $ppmp = Ppmp::query()->create([
+        'organization_id' => $context['organization']->id,
+        'fiscal_year_id' => $context['fiscalYear']->id,
+        'organizational_unit_id' => $context['unit']->id,
+        'reference_no' => "PPMP-{$reference}",
+        'title' => "PPMP {$reference}",
+        'version' => 1,
+        'status' => PlanningStatus::Approved->value,
+        'prepared_by' => $context['user']->id,
+    ]);
+
+    $ppmpItem = $ppmp->items()->create([
+        'recommended_procurement_method_id' => $context['method']->id,
+        'item_no' => '1',
+        'title' => "Requirement {$reference}",
+        'description' => 'Approved procurement requirement.',
+        'procurement_category' => ProcurementCategory::Goods->value,
+        'quantity' => 1,
+        'unit' => 'lot',
+        'estimated_unit_cost' => $budget,
+        'estimated_budget' => $budget,
+        'funding_source' => 'GAA',
+        'target_quarter' => 2,
+        'status' => PlanningStatus::Approved->value,
+    ]);
+
     $plan = AnnualProcurementPlan::query()->create([
         'organization_id' => $context['organization']->id,
         'fiscal_year_id' => $context['fiscalYear']->id,
@@ -95,6 +122,7 @@ function procurementProjectAppItem(
     ]);
 
     return $plan->items()->create([
+        'ppmp_item_id' => $ppmpItem->id,
         'procurement_method_id' => $context['method']->id,
         'app_item_no' => '1',
         'title' => "Requirement {$reference}",
