@@ -1,9 +1,9 @@
-import { Head, Link } from '@inertiajs/react';
-import { Pencil, Plus } from 'lucide-react';
-import ProcurementProjectController from '@/actions/App/Http/Controllers/Procurement/ProcurementProjectController';
-import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Head, Link } from "@inertiajs/react";
+import { Pencil, Plus } from "lucide-react";
+import ProcurementProjectController from "@/actions/App/Http/Controllers/Procurement/ProcurementProjectController";
+import Heading from "@/components/heading";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type Project = {
     id: number;
@@ -40,24 +40,20 @@ type PaginatedProjects = {
 };
 
 function currency(value: string) {
-    return new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP',
+    return new Intl.NumberFormat("en-PH", {
+        style: "currency",
+        currency: "PHP",
     }).format(Number(value));
 }
 
 function humanize(value: string) {
     return value
-        .split('_')
+        .split("_")
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+        .join(" ");
 }
 
-export default function ProcurementProjectIndex({
-    projects,
-}: {
-    projects: PaginatedProjects;
-}) {
+export default function ProcurementProjectIndex({ projects }: { projects: PaginatedProjects }) {
     return (
         <>
             <Head title="Procurement Projects" />
@@ -80,12 +76,9 @@ export default function ProcurementProjectIndex({
                         {projects.data.length === 0 ? (
                             <div className="flex min-h-64 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
                                 <div>
-                                    <p className="font-medium">
-                                        No procurement projects yet
-                                    </p>
+                                    <p className="font-medium">No procurement projects yet</p>
                                     <p className="text-muted-foreground mt-1 text-sm">
-                                        Initiate a project from an eligible approved
-                                        APP item.
+                                        Initiate a project from an eligible approved APP item.
                                     </p>
                                 </div>
                                 <Button asChild variant="outline">
@@ -104,33 +97,39 @@ export default function ProcurementProjectIndex({
                                             <th className="px-4 py-3 font-medium">Project</th>
                                             <th className="px-4 py-3 font-medium">APP Source</th>
                                             <th className="px-4 py-3 font-medium">Method</th>
-                                            <th className="px-4 py-3 text-right font-medium">Budget</th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Budget
+                                            </th>
                                             <th className="px-4 py-3 font-medium">Status</th>
                                             <th className="px-4 py-3 font-medium">Officer</th>
-                                            <th className="px-4 py-3 text-right font-medium">Actions</th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {projects.data.map((project) => (
-                                            <tr
-                                                key={project.id}
-                                                className="border-b last:border-0"
-                                            >
+                                            <tr key={project.id} className="border-b last:border-0">
                                                 <td className="px-4 py-3 font-medium whitespace-nowrap">
                                                     {project.reference_no}
                                                 </td>
                                                 <td className="max-w-sm px-4 py-3">
-                                                    <div className="truncate">
-                                                        {project.title}
-                                                    </div>
+                                                    <div className="truncate">{project.title}</div>
                                                     <div className="text-muted-foreground mt-1 text-xs">
                                                         FY {project.fiscal_year.year}
                                                     </div>
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
                                                     <div>
-                                                        {project.app_item.annual_procurement_plan.reference_no}{' '}
-                                                        v{project.app_item.annual_procurement_plan.version}
+                                                        {
+                                                            project.app_item.annual_procurement_plan
+                                                                .reference_no
+                                                        }{" "}
+                                                        v
+                                                        {
+                                                            project.app_item.annual_procurement_plan
+                                                                .version
+                                                        }
                                                     </div>
                                                     <div className="text-muted-foreground text-xs">
                                                         Item {project.app_item.app_item_no}
@@ -148,15 +147,12 @@ export default function ProcurementProjectIndex({
                                                     </Badge>
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {project.procurement_officer?.name ?? 'Unassigned'}
+                                                    {project.procurement_officer?.name ??
+                                                        "Unassigned"}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
-                                                    {project.status === 'planned' && (
-                                                        <Button
-                                                            asChild
-                                                            variant="outline"
-                                                            size="sm"
-                                                        >
+                                                    {project.status === "planned" && (
+                                                        <Button asChild variant="outline" size="sm">
                                                             <Link
                                                                 href={ProcurementProjectController.edit(
                                                                     project.id,
