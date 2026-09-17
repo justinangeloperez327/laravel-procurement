@@ -59,7 +59,7 @@ class ProcurementRoundController extends Controller
                 ]);
             }
 
-            $roundNo = ($latestRound?->round_no ?? 0) + 1;
+            $roundNo = $latestRound === null ? 1 : $latestRound->round_no + 1;
 
             ProcurementRound::query()->create([
                 'procurement_project_id' => $lockedProject->id,
