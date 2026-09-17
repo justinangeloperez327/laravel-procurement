@@ -4,6 +4,7 @@ use App\Http\Controllers\Planning\AnnualProcurementPlanController;
 use App\Http\Controllers\Planning\MarketScopingController;
 use App\Http\Controllers\Planning\PlanningWorkflowController;
 use App\Http\Controllers\Planning\PpmpController;
+use App\Http\Controllers\Procurement\ProcurementProjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -35,6 +36,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('annual-procurement-plans.approve');
         Route::patch('annual-procurement-plans/{annualProcurementPlan}/return', [PlanningWorkflowController::class, 'returnAnnualProcurementPlan'])
             ->name('annual-procurement-plans.return');
+    });
+
+    Route::prefix('procurement')->name('procurement.')->group(function () {
+        Route::resource('projects', ProcurementProjectController::class)
+            ->except(['show', 'destroy']);
     });
 });
 
