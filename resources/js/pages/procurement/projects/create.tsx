@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
+import type { ComponentProps } from 'react';
 import ProcurementProjectForm from '@/components/procurement/procurement-project-form';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 
-type Props = React.ComponentProps<typeof ProcurementProjectForm>;
+type Props = ComponentProps<typeof ProcurementProjectForm>;
 
 export default function CreateProcurementProject(props: Props) {
     return (
