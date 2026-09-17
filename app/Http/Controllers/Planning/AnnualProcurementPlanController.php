@@ -7,6 +7,7 @@ use App\Domain\Planning\Enums\AnnualProcurementPlanType;
 use App\Domain\Planning\Enums\PlanningStatus;
 use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\PpmpItem;
+use App\Domain\Planning\Services\PlanningWorkflowService;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Planning\AnnualProcurementPlanRequest;
@@ -20,8 +21,9 @@ use Inertia\Response;
 
 class AnnualProcurementPlanController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, PlanningWorkflowService $workflow): Response
     {
+        $user = $this->procurementUser($request);
         $organizationId = $this->organizationId($request);
 
         $plans = AnnualProcurementPlan::query()
@@ -32,6 +34,12 @@ class AnnualProcurementPlanController extends Controller
             ->latest('updated_at')
             ->paginate(15)
             ->withQueryString();
+
+        $plans->through(function (AnnualProcurementPlan $plan) use ($workflow, $user): AnnualProcurementPlan {
+            $plan->setAttribute('available_actions', $workflow->availableActions($user, $plan));
+
+            return $plan;
+        });
 
         return Inertia::render('planning/annual-procurement-plans/index', [
             'plans' => $plans,
@@ -108,7 +116,7 @@ class AnnualProcurementPlanController extends Controller
         });
 
         return to_route('planning.annual-procurement-plans.index')
-            ->with('success', 'Annual Procurement Plan draft updated.');
+            ->with('success', 'Annual Procurement Plan updated.');
     }
 
     /**
@@ -215,9 +223,12 @@ class AnnualProcurementPlanController extends Controller
     ): void {
         abort_unless($annualProcurementPlan->organization_id === $organizationId, 404);
         abort_unless(
-            $annualProcurementPlan->getRawOriginal('status') === PlanningStatus::Draft->value,
+            in_array($annualProcurementPlan->getRawOriginal('status'), [
+                PlanningStatus::Draft->value,
+                PlanningStatus::Returned->value,
+            ], true),
             409,
-            'Only draft Annual Procurement Plans can be edited.',
+            'Only draft or returned Annual Procurement Plans can be edited.',
         );
     }
 }

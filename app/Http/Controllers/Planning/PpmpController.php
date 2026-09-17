@@ -8,6 +8,7 @@ use App\Domain\Planning\Enums\PlanningStatus;
 use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Planning\Models\MarketScoping;
 use App\Domain\Planning\Models\Ppmp;
+use App\Domain\Planning\Services\PlanningWorkflowService;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Planning\PpmpRequest;
@@ -21,8 +22,9 @@ use Inertia\Response;
 
 class PpmpController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, PlanningWorkflowService $workflow): Response
     {
+        $user = $this->procurementUser($request);
         $organizationId = $this->organizationId($request);
 
         $ppmps = Ppmp::query()
@@ -36,6 +38,12 @@ class PpmpController extends Controller
             ->latest('updated_at')
             ->paginate(15)
             ->withQueryString();
+
+        $ppmps->through(function (Ppmp $ppmp) use ($workflow, $user): Ppmp {
+            $ppmp->setAttribute('available_actions', $workflow->availableActions($user, $ppmp));
+
+            return $ppmp;
+        });
 
         return Inertia::render('planning/ppmps/index', [
             'ppmps' => $ppmps,
@@ -107,7 +115,7 @@ class PpmpController extends Controller
         });
 
         return to_route('planning.ppmps.index')
-            ->with('success', 'PPMP draft updated.');
+            ->with('success', 'PPMP updated.');
     }
 
     /**
@@ -198,9 +206,12 @@ class PpmpController extends Controller
     {
         abort_unless($ppmp->organization_id === $organizationId, 404);
         abort_unless(
-            $ppmp->getRawOriginal('status') === PlanningStatus::Draft->value,
+            in_array($ppmp->getRawOriginal('status'), [
+                PlanningStatus::Draft->value,
+                PlanningStatus::Returned->value,
+            ], true),
             409,
-            'Only draft PPMPs can be edited.',
+            'Only draft or returned PPMPs can be edited.',
         );
     }
 }
