@@ -53,7 +53,9 @@ function transition(plan: AnnualProcurementPlan, action: WorkflowAction) {
             return;
         }
 
-        router.patch(`/planning/annual-procurement-plans/${plan.id}/return`, { remarks });
+        router.patch(`/planning/annual-procurement-plans/${plan.id}/return`, {
+            remarks,
+        });
 
         return;
     }
@@ -113,7 +115,9 @@ export default function AnnualProcurementPlanIndex({
                         />
 
                         <Button asChild>
-                            <Link href={AnnualProcurementPlanController.create()}>
+                            <Link
+                                href={AnnualProcurementPlanController.create()}
+                            >
                                 <Plus />
                                 New APP
                             </Link>
@@ -124,13 +128,18 @@ export default function AnnualProcurementPlanIndex({
                         {plans.data.length === 0 ? (
                             <div className="flex min-h-64 flex-col items-center justify-center gap-3 px-6 py-12 text-center">
                                 <div>
-                                    <p className="font-medium">No Annual Procurement Plans yet</p>
+                                    <p className="font-medium">
+                                        No Annual Procurement Plans yet
+                                    </p>
                                     <p className="text-muted-foreground mt-1 text-sm">
-                                        Create an APP after PPMPs are ready for consolidation.
+                                        Create an APP after PPMPs are ready for
+                                        consolidation.
                                     </p>
                                 </div>
                                 <Button asChild variant="outline">
-                                    <Link href={AnnualProcurementPlanController.create()}>
+                                    <Link
+                                        href={AnnualProcurementPlanController.create()}
+                                    >
                                         <Plus />
                                         Create APP
                                     </Link>
@@ -141,21 +150,41 @@ export default function AnnualProcurementPlanIndex({
                                 <table className="w-full text-sm">
                                     <thead className="bg-muted/50 text-left">
                                         <tr className="border-b">
-                                            <th className="px-4 py-3 font-medium">Reference</th>
-                                            <th className="px-4 py-3 font-medium">Type</th>
-                                            <th className="px-4 py-3 font-medium">FY</th>
-                                            <th className="px-4 py-3 text-right font-medium">Projects</th>
-                                            <th className="px-4 py-3 text-right font-medium">Budget</th>
-                                            <th className="px-4 py-3 font-medium">Status</th>
-                                            <th className="px-4 py-3 text-right font-medium">Actions</th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Reference
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Type
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                FY
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Projects
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Budget
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {plans.data.map((plan) => {
-                                            const editable = ['draft', 'returned'].includes(plan.status);
+                                            const editable = [
+                                                'draft',
+                                                'returned',
+                                            ].includes(plan.status);
 
                                             return (
-                                                <tr key={plan.id} className="border-b last:border-0">
+                                                <tr
+                                                    key={plan.id}
+                                                    className="border-b last:border-0"
+                                                >
                                                     <td className="px-4 py-3 font-medium whitespace-nowrap">
                                                         {plan.reference_no}
                                                         <span className="text-muted-foreground ml-2 text-xs">
@@ -163,22 +192,36 @@ export default function AnnualProcurementPlanIndex({
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
-                                                        {humanize(plan.app_type)}
+                                                        {humanize(
+                                                            plan.app_type,
+                                                        )}
                                                     </td>
-                                                    <td className="px-4 py-3">{plan.fiscal_year.year}</td>
+                                                    <td className="px-4 py-3">
+                                                        {plan.fiscal_year.year}
+                                                    </td>
                                                     <td className="px-4 py-3 text-right tabular-nums">
                                                         {plan.items_count}
                                                     </td>
                                                     <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
-                                                        {currency(plan.items_sum_estimated_budget)}
+                                                        {currency(
+                                                            plan.items_sum_estimated_budget,
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <Badge variant="secondary">{humanize(plan.status)}</Badge>
+                                                        <Badge variant="secondary">
+                                                            {humanize(
+                                                                plan.status,
+                                                            )}
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex flex-wrap justify-end gap-2">
                                                             {editable && (
-                                                                <Button variant="outline" size="sm" asChild>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
                                                                     <Link
                                                                         href={AnnualProcurementPlanController.edit(
                                                                             plan.id,
@@ -189,18 +232,32 @@ export default function AnnualProcurementPlanIndex({
                                                                     </Link>
                                                                 </Button>
                                                             )}
-                                                            {plan.available_actions.map((action) => (
-                                                                <WorkflowButton
-                                                                    key={action}
-                                                                    plan={plan}
-                                                                    action={action}
-                                                                />
-                                                            ))}
-                                                            {!editable && plan.available_actions.length === 0 && (
-                                                                <span className="text-muted-foreground self-center text-xs">
-                                                                    No action available
-                                                                </span>
+                                                            {plan.available_actions.map(
+                                                                (action) => (
+                                                                    <WorkflowButton
+                                                                        key={
+                                                                            action
+                                                                        }
+                                                                        plan={
+                                                                            plan
+                                                                        }
+                                                                        action={
+                                                                            action
+                                                                        }
+                                                                    />
+                                                                ),
                                                             )}
+                                                            {!editable &&
+                                                                plan
+                                                                    .available_actions
+                                                                    .length ===
+                                                                    0 && (
+                                                                    <span className="text-muted-foreground self-center text-xs">
+                                                                        No
+                                                                        action
+                                                                        available
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -225,7 +282,10 @@ export default function AnnualProcurementPlanIndex({
                                     asChild={Boolean(plans.prev_page_url)}
                                 >
                                     {plans.prev_page_url ? (
-                                        <Link href={plans.prev_page_url} preserveScroll>
+                                        <Link
+                                            href={plans.prev_page_url}
+                                            preserveScroll
+                                        >
                                             Previous
                                         </Link>
                                     ) : (
@@ -239,7 +299,10 @@ export default function AnnualProcurementPlanIndex({
                                     asChild={Boolean(plans.next_page_url)}
                                 >
                                     {plans.next_page_url ? (
-                                        <Link href={plans.next_page_url} preserveScroll>
+                                        <Link
+                                            href={plans.next_page_url}
+                                            preserveScroll
+                                        >
                                             Next
                                         </Link>
                                     ) : (

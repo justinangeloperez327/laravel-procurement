@@ -5,11 +5,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-type WorkflowAction =
-    | 'submitted'
-    | 'review_started'
-    | 'approved'
-    | 'returned';
+type WorkflowAction = 'submitted' | 'review_started' | 'approved' | 'returned';
 
 type Ppmp = {
     id: number;
@@ -77,7 +73,13 @@ function transition(ppmp: Ppmp, action: WorkflowAction) {
     router.patch(`/planning/ppmps/${ppmp.id}/${endpoint}`);
 }
 
-function WorkflowButton({ ppmp, action }: { ppmp: Ppmp; action: WorkflowAction }) {
+function WorkflowButton({
+    ppmp,
+    action,
+}: {
+    ppmp: Ppmp;
+    action: WorkflowAction;
+}) {
     const config = {
         submitted: { label: 'Submit', icon: Send },
         review_started: { label: 'Start Review', icon: Play },
@@ -125,7 +127,8 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                 <div>
                                     <p className="font-medium">No PPMPs yet</p>
                                     <p className="text-muted-foreground mt-1 text-sm">
-                                        Create a PPMP to begin formal procurement planning for a fiscal year.
+                                        Create a PPMP to begin formal
+                                        procurement planning for a fiscal year.
                                     </p>
                                 </div>
                                 <Button asChild variant="outline">
@@ -140,22 +143,44 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                 <table className="w-full text-sm">
                                     <thead className="bg-muted/50 text-left">
                                         <tr className="border-b">
-                                            <th className="px-4 py-3 font-medium">Reference</th>
-                                            <th className="px-4 py-3 font-medium">PPMP</th>
-                                            <th className="px-4 py-3 font-medium">FY</th>
-                                            <th className="px-4 py-3 font-medium">Unit</th>
-                                            <th className="px-4 py-3 text-right font-medium">Items</th>
-                                            <th className="px-4 py-3 text-right font-medium">Budget</th>
-                                            <th className="px-4 py-3 font-medium">Status</th>
-                                            <th className="px-4 py-3 text-right font-medium">Actions</th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Reference
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                PPMP
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                FY
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Unit
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Items
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Budget
+                                            </th>
+                                            <th className="px-4 py-3 font-medium">
+                                                Status
+                                            </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {ppmps.data.map((ppmp) => {
-                                            const editable = ['draft', 'returned'].includes(ppmp.status);
+                                            const editable = [
+                                                'draft',
+                                                'returned',
+                                            ].includes(ppmp.status);
 
                                             return (
-                                                <tr key={ppmp.id} className="border-b last:border-0">
+                                                <tr
+                                                    key={ppmp.id}
+                                                    className="border-b last:border-0"
+                                                >
                                                     <td className="px-4 py-3 font-medium whitespace-nowrap">
                                                         {ppmp.reference_no}
                                                         <span className="text-muted-foreground ml-2 text-xs">
@@ -163,45 +188,81 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                                         </span>
                                                     </td>
                                                     <td className="max-w-sm px-4 py-3">
-                                                        <div className="truncate">{ppmp.title}</div>
+                                                        <div className="truncate">
+                                                            {ppmp.title}
+                                                        </div>
                                                     </td>
-                                                    <td className="px-4 py-3">{ppmp.fiscal_year.year}</td>
                                                     <td className="px-4 py-3">
-                                                        {ppmp.organizational_unit.code
+                                                        {ppmp.fiscal_year.year}
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        {ppmp
+                                                            .organizational_unit
+                                                            .code
                                                             ? `${ppmp.organizational_unit.code} — ${ppmp.organizational_unit.name}`
-                                                            : ppmp.organizational_unit.name}
+                                                            : ppmp
+                                                                  .organizational_unit
+                                                                  .name}
                                                     </td>
                                                     <td className="px-4 py-3 text-right tabular-nums">
                                                         {ppmp.items_count}
                                                     </td>
                                                     <td className="px-4 py-3 text-right font-medium whitespace-nowrap tabular-nums">
-                                                        {currency(ppmp.items_sum_estimated_budget)}
+                                                        {currency(
+                                                            ppmp.items_sum_estimated_budget,
+                                                        )}
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <Badge variant="secondary">{humanize(ppmp.status)}</Badge>
+                                                        <Badge variant="secondary">
+                                                            {humanize(
+                                                                ppmp.status,
+                                                            )}
+                                                        </Badge>
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <div className="flex flex-wrap justify-end gap-2">
                                                             {editable && (
-                                                                <Button variant="outline" size="sm" asChild>
-                                                                    <Link href={PpmpController.edit(ppmp.id)}>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="sm"
+                                                                    asChild
+                                                                >
+                                                                    <Link
+                                                                        href={PpmpController.edit(
+                                                                            ppmp.id,
+                                                                        )}
+                                                                    >
                                                                         <Pencil />
                                                                         Edit
                                                                     </Link>
                                                                 </Button>
                                                             )}
-                                                            {ppmp.available_actions.map((action) => (
-                                                                <WorkflowButton
-                                                                    key={action}
-                                                                    ppmp={ppmp}
-                                                                    action={action}
-                                                                />
-                                                            ))}
-                                                            {!editable && ppmp.available_actions.length === 0 && (
-                                                                <span className="text-muted-foreground self-center text-xs">
-                                                                    No action available
-                                                                </span>
+                                                            {ppmp.available_actions.map(
+                                                                (action) => (
+                                                                    <WorkflowButton
+                                                                        key={
+                                                                            action
+                                                                        }
+                                                                        ppmp={
+                                                                            ppmp
+                                                                        }
+                                                                        action={
+                                                                            action
+                                                                        }
+                                                                    />
+                                                                ),
                                                             )}
+                                                            {!editable &&
+                                                                ppmp
+                                                                    .available_actions
+                                                                    .length ===
+                                                                    0 && (
+                                                                    <span className="text-muted-foreground self-center text-xs">
+                                                                        No
+                                                                        action
+                                                                        available
+                                                                    </span>
+                                                                )}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -226,7 +287,10 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                     asChild={Boolean(ppmps.prev_page_url)}
                                 >
                                     {ppmps.prev_page_url ? (
-                                        <Link href={ppmps.prev_page_url} preserveScroll>
+                                        <Link
+                                            href={ppmps.prev_page_url}
+                                            preserveScroll
+                                        >
                                             Previous
                                         </Link>
                                     ) : (
@@ -240,7 +304,10 @@ export default function PpmpIndex({ ppmps }: { ppmps: PaginatedPpmps }) {
                                     asChild={Boolean(ppmps.next_page_url)}
                                 >
                                     {ppmps.next_page_url ? (
-                                        <Link href={ppmps.next_page_url} preserveScroll>
+                                        <Link
+                                            href={ppmps.next_page_url}
+                                            preserveScroll
+                                        >
                                             Next
                                         </Link>
                                     ) : (
