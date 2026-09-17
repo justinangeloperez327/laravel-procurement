@@ -24,7 +24,7 @@ class PlanningWorkflowController extends Controller
             PlanningWorkflowAction::Submitted,
         );
 
-        return back()->with('success', 'PPMP submitted for review.');
+        return back()->with('success', 'PPMP submitted for planning review.');
     }
 
     public function startPpmpReview(
