@@ -89,7 +89,7 @@ class ProcurementActivityController extends Controller
         });
 
         return to_route('procurement.projects.rounds.activities.index', [$project, $round])
-            ->with('success', 'Procurement activity added.');
+            ->with('success', 'Procurement activity scheduled.');
     }
 
     public function complete(
