@@ -1,0 +1,40 @@
+name: fix-vp-procurement-activities-once
+
+on:
+  push:
+    branches:
+      - feat/procurement-activities
+    paths:
+      - .github/workflows/fix-vp-procurement-activities-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+
+      - name: Install
+        run: npm ci
+
+      - name: Apply repository frontend fixes
+        run: npx vp check --fix
+
+      - name: Commit fixes and remove helper
+        run: |
+          rm .github/workflows/fix-vp-procurement-activities-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "style: apply repository frontend formatting"
+          git push
