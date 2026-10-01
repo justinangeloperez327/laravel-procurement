@@ -5,6 +5,7 @@ use App\Http\Controllers\Planning\MarketScopingController;
 use App\Http\Controllers\Planning\PlanningWorkflowController;
 use App\Http\Controllers\Planning\PpmpController;
 use App\Http\Controllers\Procurement\ProcurementProjectController;
+use App\Http\Controllers\Procurement\ProcurementRoundController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -41,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('procurement')->name('procurement.')->group(function () {
         Route::resource('projects', ProcurementProjectController::class)
             ->except(['show', 'destroy']);
+        Route::get('projects/{project}/rounds', [ProcurementRoundController::class, 'index'])
+            ->name('projects.rounds.index');
+        Route::post('projects/{project}/rounds', [ProcurementRoundController::class, 'store'])
+            ->name('projects.rounds.store');
     });
 });
 
