@@ -1,9 +1,9 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
-import { ArrowLeft, Check, Plus } from 'lucide-react';
-import Heading from '@/components/heading';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Head, Link, router, useForm } from "@inertiajs/react";
+import { ArrowLeft, Check, Plus } from "lucide-react";
+import Heading from "@/components/heading";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type UserOption = {
     id: number;
@@ -51,19 +51,19 @@ type Project = {
 
 function humanize(value: string) {
     return value
-        .split('_')
+        .split("_")
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(' ');
+        .join(" ");
 }
 
 function dateTime(value: string | null) {
     if (!value) {
-        return '—';
+        return "—";
     }
 
-    return new Intl.DateTimeFormat('en-PH', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
+    return new Intl.DateTimeFormat("en-PH", {
+        dateStyle: "medium",
+        timeStyle: "short",
     }).format(new Date(value));
 }
 
@@ -81,10 +81,10 @@ export default function ProcurementActivitiesIndex({
     canModify: boolean;
 }) {
     const form = useForm({
-        activity_type: activityTypes[0]?.value ?? '',
-        scheduled_at: '',
-        responsible_user_id: '',
-        remarks: '',
+        activity_type: activityTypes[0]?.value ?? "",
+        scheduled_at: "",
+        responsible_user_id: "",
+        remarks: "",
     });
 
     const baseUrl = `/procurement/projects/${project.id}/rounds/${round.id}/activities`;
@@ -95,17 +95,13 @@ export default function ProcurementActivitiesIndex({
         form.post(baseUrl, {
             preserveScroll: true,
             onSuccess: () => {
-                form.reset('scheduled_at', 'responsible_user_id', 'remarks');
+                form.reset("scheduled_at", "responsible_user_id", "remarks");
             },
         });
     };
 
     const completeActivity = (activity: Activity) => {
-        router.patch(
-            `${baseUrl}/${activity.id}/complete`,
-            {},
-            { preserveScroll: true },
-        );
+        router.patch(`${baseUrl}/${activity.id}/complete`, {}, { preserveScroll: true });
     };
 
     return (
@@ -116,9 +112,7 @@ export default function ProcurementActivitiesIndex({
                 <div className="mx-auto w-full max-w-7xl space-y-6">
                     <div className="space-y-3">
                         <Button asChild variant="ghost" size="sm">
-                            <Link
-                                href={`/procurement/projects/${project.id}/rounds`}
-                            >
+                            <Link href={`/procurement/projects/${project.id}/rounds`}>
                                 <ArrowLeft />
                                 Procurement Rounds
                             </Link>
@@ -140,18 +134,14 @@ export default function ProcurementActivitiesIndex({
                             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                                 Procurement Method
                             </p>
-                            <p className="mt-2 font-semibold">
-                                {round.procurement_method.name}
-                            </p>
+                            <p className="mt-2 font-semibold">{round.procurement_method.name}</p>
                         </div>
                         <div className="bg-card rounded-xl border p-4 shadow-xs">
                             <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                                 Round Status
                             </p>
                             <div className="mt-2">
-                                <Badge variant="outline">
-                                    {humanize(round.status)}
-                                </Badge>
+                                <Badge variant="outline">{humanize(round.status)}</Badge>
                             </div>
                         </div>
                     </div>
@@ -162,28 +152,19 @@ export default function ProcurementActivitiesIndex({
                             className="bg-card grid gap-4 rounded-xl border p-5 shadow-xs md:grid-cols-2 md:p-6 xl:grid-cols-4"
                         >
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="activity_type"
-                                    className="text-sm font-medium"
-                                >
+                                <label htmlFor="activity_type" className="text-sm font-medium">
                                     Activity
                                 </label>
                                 <select
                                     id="activity_type"
                                     value={form.data.activity_type}
                                     onChange={(event) =>
-                                        form.setData(
-                                            'activity_type',
-                                            event.target.value,
-                                        )
+                                        form.setData("activity_type", event.target.value)
                                     }
                                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs"
                                 >
                                     {activityTypes.map((type) => (
-                                        <option
-                                            key={type.value}
-                                            value={type.value}
-                                        >
+                                        <option key={type.value} value={type.value}>
                                             {type.label}
                                         </option>
                                     ))}
@@ -196,10 +177,7 @@ export default function ProcurementActivitiesIndex({
                             </div>
 
                             <div className="space-y-2">
-                                <label
-                                    htmlFor="scheduled_at"
-                                    className="text-sm font-medium"
-                                >
+                                <label htmlFor="scheduled_at" className="text-sm font-medium">
                                     Scheduled date
                                 </label>
                                 <Input
@@ -207,10 +185,7 @@ export default function ProcurementActivitiesIndex({
                                     type="datetime-local"
                                     value={form.data.scheduled_at}
                                     onChange={(event) =>
-                                        form.setData(
-                                            'scheduled_at',
-                                            event.target.value,
-                                        )
+                                        form.setData("scheduled_at", event.target.value)
                                     }
                                 />
                                 {form.errors.scheduled_at && (
@@ -231,10 +206,7 @@ export default function ProcurementActivitiesIndex({
                                     id="responsible_user_id"
                                     value={form.data.responsible_user_id}
                                     onChange={(event) =>
-                                        form.setData(
-                                            'responsible_user_id',
-                                            event.target.value,
-                                        )
+                                        form.setData("responsible_user_id", event.target.value)
                                     }
                                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs"
                                 >
@@ -253,31 +225,21 @@ export default function ProcurementActivitiesIndex({
                             </div>
 
                             <div className="flex items-end">
-                                <Button
-                                    type="submit"
-                                    className="w-full"
-                                    disabled={form.processing}
-                                >
+                                <Button type="submit" className="w-full" disabled={form.processing}>
                                     <Plus />
                                     Add Activity
                                 </Button>
                             </div>
 
                             <div className="space-y-2 md:col-span-2 xl:col-span-4">
-                                <label
-                                    htmlFor="remarks"
-                                    className="text-sm font-medium"
-                                >
+                                <label htmlFor="remarks" className="text-sm font-medium">
                                     Remarks
                                 </label>
                                 <textarea
                                     id="remarks"
                                     value={form.data.remarks}
                                     onChange={(event) =>
-                                        form.setData(
-                                            'remarks',
-                                            event.target.value,
-                                        )
+                                        form.setData("remarks", event.target.value)
                                     }
                                     rows={3}
                                     className="border-input bg-background placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
@@ -292,23 +254,18 @@ export default function ProcurementActivitiesIndex({
                         </form>
                     ) : (
                         <div className="bg-muted/40 rounded-xl border px-5 py-4 text-sm">
-                            This round is historical or terminal. Its activity
-                            record is read-only.
+                            This round is historical or terminal. Its activity record is read-only.
                         </div>
                     )}
 
                     <div className="bg-card overflow-hidden rounded-xl border shadow-xs">
                         {round.activities.length === 0 ? (
                             <div className="flex min-h-56 flex-col items-center justify-center gap-2 px-6 py-12 text-center">
-                                <p className="font-medium">
-                                    No procurement activities recorded
-                                </p>
+                                <p className="font-medium">No procurement activities recorded</p>
                                 <p className="text-muted-foreground max-w-2xl text-sm">
-                                    Add the activities required for this
-                                    procurement method. The system records the
-                                    actual execution evidence without forcing
-                                    every procurement method through one fixed
-                                    sequence.
+                                    Add the activities required for this procurement method. The
+                                    system records the actual execution evidence without forcing
+                                    every procurement method through one fixed sequence.
                                 </p>
                             </div>
                         ) : (
@@ -316,27 +273,13 @@ export default function ProcurementActivitiesIndex({
                                 <table className="w-full text-sm">
                                     <thead className="bg-muted/50 text-left">
                                         <tr className="border-b">
-                                            <th className="px-4 py-3 font-medium">
-                                                #
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Activity
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Scheduled
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Actual
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Responsible
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Status
-                                            </th>
-                                            <th className="px-4 py-3 font-medium">
-                                                Remarks
-                                            </th>
+                                            <th className="px-4 py-3 font-medium">#</th>
+                                            <th className="px-4 py-3 font-medium">Activity</th>
+                                            <th className="px-4 py-3 font-medium">Scheduled</th>
+                                            <th className="px-4 py-3 font-medium">Actual</th>
+                                            <th className="px-4 py-3 font-medium">Responsible</th>
+                                            <th className="px-4 py-3 font-medium">Status</th>
+                                            <th className="px-4 py-3 font-medium">Remarks</th>
                                             <th className="px-4 py-3 text-right font-medium">
                                                 Action
                                             </th>
@@ -352,48 +295,36 @@ export default function ProcurementActivitiesIndex({
                                                     {activity.sequence_no}
                                                 </td>
                                                 <td className="px-4 py-3 font-medium">
-                                                    {humanize(
-                                                        activity.activity_type,
-                                                    )}
+                                                    {humanize(activity.activity_type)}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    {dateTime(
-                                                        activity.scheduled_at,
-                                                    )}
+                                                    {dateTime(activity.scheduled_at)}
                                                 </td>
                                                 <td className="px-4 py-3 whitespace-nowrap">
-                                                    {dateTime(
-                                                        activity.actual_at,
-                                                    )}
+                                                    {dateTime(activity.actual_at)}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {activity.responsible_user
-                                                        ?.name ?? 'Unassigned'}
+                                                    {activity.responsible_user?.name ??
+                                                        "Unassigned"}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <Badge variant="outline">
-                                                        {humanize(
-                                                            activity.status,
-                                                        )}
+                                                        {humanize(activity.status)}
                                                     </Badge>
                                                 </td>
                                                 <td className="text-muted-foreground max-w-xs px-4 py-3">
-                                                    {activity.remarks ?? '—'}
+                                                    {activity.remarks ?? "—"}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
                                                     {canModify &&
-                                                        activity.status !==
-                                                            'completed' &&
-                                                        activity.status !==
-                                                            'cancelled' && (
+                                                        activity.status !== "completed" &&
+                                                        activity.status !== "cancelled" && (
                                                             <Button
                                                                 type="button"
                                                                 variant="outline"
                                                                 size="sm"
                                                                 onClick={() =>
-                                                                    completeActivity(
-                                                                        activity,
-                                                                    )
+                                                                    completeActivity(activity)
                                                                 }
                                                             >
                                                                 <Check />
