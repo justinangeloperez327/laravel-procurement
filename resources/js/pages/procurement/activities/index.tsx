@@ -119,7 +119,7 @@ export default function ProcurementActivitiesIndex({
                         </Button>
                         <Heading
                             title={`${project.reference_no} — Round #${round.round_no}`}
-                            description="Plan and record the procurement activities for this round without overwriting historical execution evidence."
+                            description="Schedule and record procurement activities for this round without overwriting historical execution evidence."
                         />
                     </div>
 
