@@ -4,8 +4,10 @@ namespace App\Domain\Planning\Models;
 
 use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Procurement\Models\ProcurementMethod;
+use App\Domain\Procurement\Models\ProcurementProject;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AppItem extends Model
 {
@@ -17,10 +19,14 @@ class AppItem extends Model
         'title',
         'description',
         'procurement_category',
+        'is_early_procurement_activity',
+        'bid_evaluation_criteria',
         'estimated_budget',
         'funding_source',
         'schedule_start',
         'schedule_end',
+        'procurement_strategy_tools',
+        'remarks',
         'status',
     ];
 
@@ -28,9 +34,11 @@ class AppItem extends Model
     {
         return [
             'procurement_category' => ProcurementCategory::class,
+            'is_early_procurement_activity' => 'boolean',
             'estimated_budget' => 'decimal:2',
             'schedule_start' => 'date',
             'schedule_end' => 'date',
+            'procurement_strategy_tools' => 'array',
         ];
     }
 
@@ -50,5 +58,11 @@ class AppItem extends Model
     public function procurementMethod(): BelongsTo
     {
         return $this->belongsTo(ProcurementMethod::class);
+    }
+
+    /** @return HasMany<ProcurementProject, $this> */
+    public function procurementProjects(): HasMany
+    {
+        return $this->hasMany(ProcurementProject::class);
     }
 }

@@ -1,5 +1,17 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import {
+    BookOpen,
+    Calendar,
+    ClipboardList,
+    FolderGit2,
+    FolderKanban,
+    LayoutGrid,
+    Search,
+} from 'lucide-react';
+import AnnualProcurementPlanController from '@/actions/App/Http/Controllers/Planning/AnnualProcurementPlanController';
+import MarketScopingController from '@/actions/App/Http/Controllers/Planning/MarketScopingController';
+import PpmpController from '@/actions/App/Http/Controllers/Planning/PpmpController';
+import ProcurementProjectController from '@/actions/App/Http/Controllers/Procurement/ProcurementProjectController';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -21,6 +33,26 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Market Scoping',
+        href: MarketScopingController.index(),
+        icon: Search,
+    },
+    {
+        title: 'PPMP',
+        href: PpmpController.index(),
+        icon: ClipboardList,
+    },
+    {
+        title: 'Annual Procurement Plan',
+        href: AnnualProcurementPlanController.index(),
+        icon: Calendar,
+    },
+    {
+        title: 'Procurement Projects',
+        href: ProcurementProjectController.index(),
+        icon: FolderKanban,
     },
 ];
 

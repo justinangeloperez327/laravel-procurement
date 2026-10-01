@@ -4,6 +4,7 @@ namespace App\Domain\Planning\Models;
 
 use App\Domain\Organization\Models\FiscalYear;
 use App\Domain\Organization\Models\Organization;
+use App\Domain\Planning\Enums\AnnualProcurementPlanType;
 use App\Domain\Planning\Enums\PlanningStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,9 +16,12 @@ class AnnualProcurementPlan extends Model
         'organization_id',
         'fiscal_year_id',
         'reference_no',
+        'app_type',
         'version',
         'status',
         'prepared_by',
+        'recommended_by',
+        'recommended_at',
         'approved_by',
         'approved_at',
     ];
@@ -25,8 +29,10 @@ class AnnualProcurementPlan extends Model
     protected function casts(): array
     {
         return [
+            'app_type' => AnnualProcurementPlanType::class,
             'version' => 'integer',
             'status' => PlanningStatus::class,
+            'recommended_at' => 'datetime',
             'approved_at' => 'datetime',
         ];
     }
