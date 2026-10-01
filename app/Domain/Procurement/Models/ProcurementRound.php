@@ -6,6 +6,7 @@ use App\Domain\Procurement\Enums\ProcurementRoundStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProcurementRound extends Model
 {
@@ -49,5 +50,11 @@ class ProcurementRound extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /** @return HasMany<ProcurementActivity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ProcurementActivity::class)->orderBy('sequence_no');
     }
 }
