@@ -223,7 +223,6 @@ test('completed procurement projects cannot start another round', function () {
     ]);
 });
 
-
 test('procurement activity workspace is isolated to the users organization', function () {
     $contextA = procurementRoundContext('ACTIVITY-INDEX-A');
     $contextB = procurementRoundContext('ACTIVITY-INDEX-B');
