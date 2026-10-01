@@ -8,8 +8,11 @@ use App\Domain\Planning\Enums\PlanningStatus;
 use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\Ppmp;
+use App\Domain\Procurement\Enums\ProcurementActivityStatus;
+use App\Domain\Procurement\Enums\ProcurementActivityType;
 use App\Domain\Procurement\Enums\ProcurementRoundStatus;
 use App\Domain\Procurement\Enums\ProcurementStatus;
+use App\Domain\Procurement\Models\ProcurementActivity;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Domain\Procurement\Models\ProcurementProject;
 use App\Domain\Procurement\Models\ProcurementRound;
@@ -218,4 +221,169 @@ test('completed procurement projects cannot start another round', function () {
     $this->assertDatabaseMissing('procurement_rounds', [
         'procurement_project_id' => $context['project']->id,
     ]);
+});
+
+
+test('procurement activity workspace is isolated to the users organization', function () {
+    $contextA = procurementRoundContext('ACTIVITY-INDEX-A');
+    $contextB = procurementRoundContext('ACTIVITY-INDEX-B');
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+
+    $this->actingAs($contextB['user'])
+        ->post(route('procurement.projects.rounds.store', $contextB['project']));
+
+    $roundA = ProcurementRound::query()
+        ->where('procurement_project_id', $contextA['project']->id)
+        ->firstOrFail();
+    $roundB = ProcurementRound::query()
+        ->where('procurement_project_id', $contextB['project']->id)
+        ->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.activities.index', [$contextA['project'], $roundA]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('procurement/activities/index')
+            ->where('project.reference_no', 'PROC-ROUND-ACTIVITY-INDEX-A')
+            ->where('round.round_no', 1)
+            ->has('round.activities', 0));
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.activities.index', [$contextB['project'], $roundB]))
+        ->assertNotFound();
+});
+
+test('user can schedule procurement activities in sequence', function () {
+    $context = procurementRoundContext('ACTIVITY-SCHEDULE');
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.activities.store', [$context['project'], $round]), [
+            'activity_type' => ProcurementActivityType::PreProcurementConference->value,
+            'scheduled_at' => '2027-03-15 09:00:00',
+            'responsible_user_id' => $context['user']->id,
+            'remarks' => 'Initial procurement conference.',
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.activities.index', [$context['project'], $round]));
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.activities.store', [$context['project'], $round]), [
+            'activity_type' => ProcurementActivityType::AdvertisementPosting->value,
+            'scheduled_at' => '2027-03-16 08:00:00',
+        ])
+        ->assertRedirect();
+
+    $activities = ProcurementActivity::query()
+        ->where('procurement_round_id', $round->id)
+        ->orderBy('sequence_no')
+        ->get();
+
+    expect($activities)->toHaveCount(2)
+        ->and($activities[0]->sequence_no)->toBe(1)
+        ->and($activities[0]->getRawOriginal('activity_type'))->toBe(ProcurementActivityType::PreProcurementConference->value)
+        ->and($activities[0]->getRawOriginal('status'))->toBe(ProcurementActivityStatus::Scheduled->value)
+        ->and($activities[0]->responsible_user_id)->toBe($context['user']->id)
+        ->and($activities[0]->created_by)->toBe($context['user']->id)
+        ->and($activities[1]->sequence_no)->toBe(2)
+        ->and($activities[1]->getRawOriginal('activity_type'))->toBe(ProcurementActivityType::AdvertisementPosting->value);
+});
+
+test('activity responsible user must belong to the same organization', function () {
+    $contextA = procurementRoundContext('ACTIVITY-USER-A');
+    $contextB = procurementRoundContext('ACTIVITY-USER-B');
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+
+    $round = ProcurementRound::query()
+        ->where('procurement_project_id', $contextA['project']->id)
+        ->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.activities.store', [$contextA['project'], $round]), [
+            'activity_type' => ProcurementActivityType::PreBidConference->value,
+            'responsible_user_id' => $contextB['user']->id,
+        ])
+        ->assertSessionHasErrors(['responsible_user_id']);
+
+    $this->assertDatabaseMissing('procurement_activities', [
+        'procurement_round_id' => $round->id,
+    ]);
+});
+
+test('user can complete a procurement activity with actual execution evidence', function () {
+    $context = procurementRoundContext('ACTIVITY-COMPLETE');
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.activities.store', [$context['project'], $round]), [
+            'activity_type' => ProcurementActivityType::BidOpening->value,
+            'scheduled_at' => '2027-04-20 10:00:00',
+        ]);
+
+    $activity = ProcurementActivity::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.activities.complete', [$context['project'], $round, $activity]), [
+            'actual_at' => '2027-04-20 10:15:00',
+            'minutes' => 'Bid opening completed with the BAC and observers present.',
+            'remarks' => 'Proceed to bid evaluation.',
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.activities.index', [$context['project'], $round]));
+
+    $activity->refresh();
+
+    expect($activity->getRawOriginal('status'))->toBe(ProcurementActivityStatus::Completed->value)
+        ->and($activity->actual_at?->format('Y-m-d H:i:s'))->toBe('2027-04-20 10:15:00')
+        ->and($activity->minutes)->toBe('Bid opening completed with the BAC and observers present.')
+        ->and($activity->remarks)->toBe('Proceed to bid evaluation.')
+        ->and($activity->updated_by)->toBe($context['user']->id);
+});
+
+test('failed procurement rounds keep their activity history read only', function () {
+    $context = procurementRoundContext('ACTIVITY-FAILED');
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $activity = ProcurementActivity::query()->create([
+        'procurement_round_id' => $round->id,
+        'sequence_no' => 1,
+        'activity_type' => ProcurementActivityType::BidSubmissionDeadline->value,
+        'status' => ProcurementActivityStatus::Scheduled->value,
+        'scheduled_at' => '2027-04-01 12:00:00',
+        'created_by' => $context['user']->id,
+    ]);
+
+    $round->update([
+        'status' => ProcurementRoundStatus::Failed->value,
+        'failure_reason' => 'No responsive bids.',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.activities.store', [$context['project'], $round]), [
+            'activity_type' => ProcurementActivityType::BidOpening->value,
+        ])
+        ->assertSessionHasErrors(['activity']);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.activities.complete', [$context['project'], $round, $activity]))
+        ->assertSessionHasErrors(['activity']);
+
+    expect(ProcurementActivity::query()->where('procurement_round_id', $round->id)->count())
+        ->toBe(1)
+        ->and($activity->fresh()?->getRawOriginal('status'))
+        ->toBe(ProcurementActivityStatus::Scheduled->value);
 });
