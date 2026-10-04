@@ -4,6 +4,7 @@ use App\Http\Controllers\Planning\AnnualProcurementPlanController;
 use App\Http\Controllers\Planning\MarketScopingController;
 use App\Http\Controllers\Planning\PlanningWorkflowController;
 use App\Http\Controllers\Planning\PpmpController;
+use App\Http\Controllers\Procurement\ProcurementActivityController;
 use App\Http\Controllers\Procurement\ProcurementProjectController;
 use App\Http\Controllers\Procurement\ProcurementRoundController;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('projects.rounds.index');
         Route::post('projects/{project}/rounds', [ProcurementRoundController::class, 'store'])
             ->name('projects.rounds.store');
+
+        Route::get('projects/{project}/rounds/{round}/activities', [ProcurementActivityController::class, 'index'])
+            ->name('projects.rounds.activities.index');
+        Route::post('projects/{project}/rounds/{round}/activities', [ProcurementActivityController::class, 'store'])
+            ->name('projects.rounds.activities.store');
+        Route::patch('projects/{project}/rounds/{round}/activities/{activity}/complete', [ProcurementActivityController::class, 'complete'])
+            ->name('projects.rounds.activities.complete');
     });
 });
 

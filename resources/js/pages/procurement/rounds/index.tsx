@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Plus } from 'lucide-react';
 import ProcurementProjectController from '@/actions/App/Http/Controllers/Procurement/ProcurementProjectController';
 import ProcurementRoundController from '@/actions/App/Http/Controllers/Procurement/ProcurementRoundController';
 import Heading from '@/components/heading';
@@ -137,6 +137,9 @@ export default function ProcurementRoundsIndex({
                                             <th className="px-4 py-3 font-medium">
                                                 Reference
                                             </th>
+                                            <th className="px-4 py-3 text-right font-medium">
+                                                Actions
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -164,6 +167,20 @@ export default function ProcurementRoundsIndex({
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     {round.reference_no ?? '—'}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <Button
+                                                        asChild
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        <Link
+                                                            href={`/procurement/projects/${project.id}/rounds/${round.id}/activities`}
+                                                        >
+                                                            <CalendarDays />
+                                                            Activities
+                                                        </Link>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}
