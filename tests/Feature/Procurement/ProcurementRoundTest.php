@@ -859,7 +859,6 @@ test('failed procurement rounds keep bid receipt and opening read only', functio
     expect($submission->fresh()?->getRawOriginal('status'))->toBe(BidSubmissionStatus::Received->value);
 });
 
-
 test('eligibility evaluation workspace is isolated to the users organization', function () {
     $contextA = procurementRoundContext('ELIGIBILITY-INDEX-A');
     $contextB = procurementRoundContext('ELIGIBILITY-INDEX-B');
