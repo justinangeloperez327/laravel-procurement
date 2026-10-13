@@ -130,7 +130,7 @@ class BidSubmissionController extends Controller
                 ? Carbon::parse((string) $data['opened_at'])
                 : now();
 
-            if ($lockedSubmission->received_at !== null && $openedAt->lt($lockedSubmission->received_at)) {
+            if ($openedAt->lt($lockedSubmission->received_at)) {
                 throw ValidationException::withMessages([
                     'opened_at' => 'The bid opening time cannot be earlier than the receipt time.',
                 ]);
