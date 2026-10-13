@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, PackageCheck } from 'lucide-react';
+import { ArrowLeft, ClipboardCheck, PackageCheck } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -281,6 +281,14 @@ export default function BidSubmissionIndex({
                             title={`${project.reference_no} — Round #${round.round_no} Bid Receipt & Opening`}
                             description="Record sealed bid receipt and the facts observed during opening. Eligibility and responsiveness decisions remain separate."
                         />
+                        <Button asChild variant="outline" size="sm">
+                            <Link
+                                href={`/procurement/projects/${project.id}/rounds/${round.id}/eligibility`}
+                            >
+                                <ClipboardCheck />
+                                Eligibility Evaluation
+                            </Link>
+                        </Button>
                     </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
