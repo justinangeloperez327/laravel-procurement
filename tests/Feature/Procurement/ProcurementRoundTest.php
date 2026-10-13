@@ -10,11 +10,14 @@ use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\Ppmp;
 use App\Domain\Procurement\Enums\BidderParticipationStatus;
 use App\Domain\Procurement\Enums\BidSubmissionStatus;
+use App\Domain\Procurement\Enums\EligibilityCriterionResult;
+use App\Domain\Procurement\Enums\EligibilityEvaluationStatus;
 use App\Domain\Procurement\Enums\ProcurementActivityStatus;
 use App\Domain\Procurement\Enums\ProcurementActivityType;
 use App\Domain\Procurement\Enums\ProcurementRoundStatus;
 use App\Domain\Procurement\Enums\ProcurementStatus;
 use App\Domain\Procurement\Models\BidderParticipation;
+use App\Domain\Procurement\Models\BidEligibilityEvaluation;
 use App\Domain\Procurement\Models\BidSubmission;
 use App\Domain\Procurement\Models\ProcurementActivity;
 use App\Domain\Procurement\Models\ProcurementMethod;
@@ -854,4 +857,304 @@ test('failed procurement rounds keep bid receipt and opening read only', functio
         ->assertSessionHasErrors(['bid']);
 
     expect($submission->fresh()?->getRawOriginal('status'))->toBe(BidSubmissionStatus::Received->value);
+});
+
+
+test('eligibility evaluation workspace is isolated to the users organization', function () {
+    $contextA = procurementRoundContext('ELIGIBILITY-INDEX-A');
+    $contextB = procurementRoundContext('ELIGIBILITY-INDEX-B');
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+    $this->actingAs($contextB['user'])
+        ->post(route('procurement.projects.rounds.store', $contextB['project']));
+
+    $roundA = ProcurementRound::query()
+        ->where('procurement_project_id', $contextA['project']->id)
+        ->firstOrFail();
+    $roundB = ProcurementRound::query()
+        ->where('procurement_project_id', $contextB['project']->id)
+        ->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.eligibility.index', [$contextA['project'], $roundA]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('procurement/evaluations/eligibility')
+            ->where('project.reference_no', 'PROC-ROUND-ELIGIBILITY-INDEX-A')
+            ->has('submissions', 0));
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.eligibility.index', [$contextB['project'], $roundB]))
+        ->assertNotFound();
+});
+
+test('eligibility checklist can only be created for an opened bid', function () {
+    $context = procurementRoundContext('ELIGIBILITY-CREATE');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-ELIGIBILITY-CREATE',
+        'legal_name' => 'Eligibility Create Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Received->value,
+        'received_at' => now(),
+        'received_by' => $context['user']->id,
+    ]);
+
+    $payload = [
+        'bid_submission_id' => $submission->id,
+        'criteria' => [
+            'Legal eligibility documents reviewed',
+            'Registration information reviewed',
+        ],
+    ];
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.eligibility.store', [$context['project'], $round]), $payload)
+        ->assertSessionHasErrors(['bid_submission_id']);
+
+    $submission->update([
+        'status' => BidSubmissionStatus::Opened->value,
+        'opened_at' => now(),
+        'opened_by' => $context['user']->id,
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.eligibility.store', [$context['project'], $round]), $payload)
+        ->assertRedirect(route('procurement.projects.rounds.eligibility.index', [$context['project'], $round]));
+
+    $evaluation = BidEligibilityEvaluation::query()->firstOrFail();
+
+    expect($evaluation->bid_submission_id)->toBe($submission->id)
+        ->and($evaluation->getRawOriginal('status'))->toBe(EligibilityEvaluationStatus::Pending->value)
+        ->and($evaluation->created_by)->toBe($context['user']->id)
+        ->and($evaluation->items()->count())->toBe(2)
+        ->and($evaluation->items()->orderBy('sequence_no')->firstOrFail()->criterion)
+        ->toBe('Legal eligibility documents reviewed');
+});
+
+test('human evaluator can finalize eligibility after resolving every criterion', function () {
+    $context = procurementRoundContext('ELIGIBILITY-FINALIZE');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-ELIGIBILITY-FINALIZE',
+        'legal_name' => 'Eligibility Finalize Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Opened->value,
+        'received_at' => now()->subMinute(),
+        'received_by' => $context['user']->id,
+        'opened_at' => now(),
+        'opened_by' => $context['user']->id,
+    ]);
+
+    $evaluation = BidEligibilityEvaluation::query()->create([
+        'procurement_round_id' => $round->id,
+        'bid_submission_id' => $submission->id,
+        'status' => EligibilityEvaluationStatus::Pending->value,
+        'created_by' => $context['user']->id,
+    ]);
+
+    $first = $evaluation->items()->create([
+        'sequence_no' => 1,
+        'criterion' => 'First human-reviewed eligibility criterion',
+    ]);
+    $second = $evaluation->items()->create([
+        'sequence_no' => 2,
+        'criterion' => 'Second human-reviewed eligibility criterion',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.eligibility.finalize', [$context['project'], $round, $evaluation]), [
+            'status' => EligibilityEvaluationStatus::Ineligible->value,
+            'decision_remarks' => 'BAC evaluator recorded a material eligibility deficiency.',
+            'items' => [
+                [
+                    'id' => $first->id,
+                    'result' => EligibilityCriterionResult::Compliant->value,
+                    'remarks' => 'Reviewed.',
+                ],
+                [
+                    'id' => $second->id,
+                    'result' => EligibilityCriterionResult::NonCompliant->value,
+                    'remarks' => 'Required evidence was not established.',
+                ],
+            ],
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.eligibility.index', [$context['project'], $round]));
+
+    $evaluation->refresh();
+
+    expect($evaluation->getRawOriginal('status'))->toBe(EligibilityEvaluationStatus::Ineligible->value)
+        ->and($evaluation->evaluated_by)->toBe($context['user']->id)
+        ->and($evaluation->evaluated_at)->not->toBeNull()
+        ->and($evaluation->decision_remarks)->toBe('BAC evaluator recorded a material eligibility deficiency.')
+        ->and($second->fresh()?->getRawOriginal('result'))->toBe(EligibilityCriterionResult::NonCompliant->value);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.eligibility.finalize', [$context['project'], $round, $evaluation]), [
+            'status' => EligibilityEvaluationStatus::Eligible->value,
+            'items' => [
+                ['id' => $first->id, 'result' => EligibilityCriterionResult::Compliant->value],
+                ['id' => $second->id, 'result' => EligibilityCriterionResult::Compliant->value],
+            ],
+        ])
+        ->assertSessionHasErrors(['evaluation']);
+
+    expect($evaluation->fresh()?->getRawOriginal('status'))
+        ->toBe(EligibilityEvaluationStatus::Ineligible->value);
+});
+
+test('ineligible eligibility decision requires human remarks', function () {
+    $context = procurementRoundContext('ELIGIBILITY-REMARKS');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-ELIGIBILITY-REMARKS',
+        'legal_name' => 'Eligibility Remarks Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Opened->value,
+        'received_at' => now()->subMinute(),
+        'received_by' => $context['user']->id,
+        'opened_at' => now(),
+        'opened_by' => $context['user']->id,
+    ]);
+
+    $evaluation = BidEligibilityEvaluation::query()->create([
+        'procurement_round_id' => $round->id,
+        'bid_submission_id' => $submission->id,
+        'status' => EligibilityEvaluationStatus::Pending->value,
+        'created_by' => $context['user']->id,
+    ]);
+
+    $item = $evaluation->items()->create([
+        'sequence_no' => 1,
+        'criterion' => 'Eligibility criterion requiring human review',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.eligibility.finalize', [$context['project'], $round, $evaluation]), [
+            'status' => EligibilityEvaluationStatus::Ineligible->value,
+            'decision_remarks' => '',
+            'items' => [
+                ['id' => $item->id, 'result' => EligibilityCriterionResult::NonCompliant->value],
+            ],
+        ])
+        ->assertSessionHasErrors(['decision_remarks']);
+
+    expect($evaluation->fresh()?->getRawOriginal('status'))
+        ->toBe(EligibilityEvaluationStatus::Pending->value);
+});
+
+test('failed procurement rounds keep eligibility evaluations read only', function () {
+    $context = procurementRoundContext('ELIGIBILITY-FAILED');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-ELIGIBILITY-FAILED',
+        'legal_name' => 'Eligibility Failed Round Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Opened->value,
+        'received_at' => now()->subMinute(),
+        'received_by' => $context['user']->id,
+        'opened_at' => now(),
+        'opened_by' => $context['user']->id,
+    ]);
+
+    $round->update([
+        'status' => ProcurementRoundStatus::Failed->value,
+        'failure_reason' => 'Round formally failed.',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.eligibility.store', [$context['project'], $round]), [
+            'bid_submission_id' => $submission->id,
+            'criteria' => ['Human-reviewed criterion'],
+        ])
+        ->assertSessionHasErrors(['evaluation']);
+
+    $this->assertDatabaseMissing('bid_eligibility_evaluations', [
+        'bid_submission_id' => $submission->id,
+    ]);
 });
