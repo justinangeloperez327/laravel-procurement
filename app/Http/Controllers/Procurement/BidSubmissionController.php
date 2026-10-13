@@ -91,7 +91,7 @@ class BidSubmissionController extends Controller
         });
 
         return to_route('procurement.projects.rounds.bids.index', [$project, $round])
-            ->with('success', 'Bid receipt recorded successfully.');
+            ->with('success', 'Bid receipt recorded.');
     }
 
     public function open(
