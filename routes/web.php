@@ -6,6 +6,7 @@ use App\Http\Controllers\Planning\PlanningWorkflowController;
 use App\Http\Controllers\Planning\PpmpController;
 use App\Http\Controllers\Procurement\BidderParticipationController;
 use App\Http\Controllers\Procurement\BidSubmissionController;
+use App\Http\Controllers\Procurement\EligibilityEvaluationController;
 use App\Http\Controllers\Procurement\ProcurementActivityController;
 use App\Http\Controllers\Procurement\ProcurementProjectController;
 use App\Http\Controllers\Procurement\ProcurementRoundController;
@@ -70,6 +71,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('projects.rounds.bids.store');
         Route::patch('projects/{project}/rounds/{round}/bids/{submission}/open', [BidSubmissionController::class, 'open'])
             ->name('projects.rounds.bids.open');
+
+        Route::get('projects/{project}/rounds/{round}/eligibility', [EligibilityEvaluationController::class, 'index'])
+            ->name('projects.rounds.eligibility.index');
+        Route::post('projects/{project}/rounds/{round}/eligibility', [EligibilityEvaluationController::class, 'store'])
+            ->name('projects.rounds.eligibility.store');
+        Route::patch('projects/{project}/rounds/{round}/eligibility/{evaluation}/finalize', [EligibilityEvaluationController::class, 'finalize'])
+            ->name('projects.rounds.eligibility.finalize');
     });
 });
 
