@@ -7,6 +7,7 @@ use App\Domain\Suppliers\Models\Supplier;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class BidderParticipation extends Model
 {
@@ -57,5 +58,11 @@ class BidderParticipation extends Model
     public function updater(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    /** @return HasOne<BidSubmission, $this> */
+    public function bidSubmission(): HasOne
+    {
+        return $this->hasOne(BidSubmission::class);
     }
 }
