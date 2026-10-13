@@ -222,11 +222,7 @@ function OpeningForm({
             </label>
 
             <div className="md:col-span-2 xl:col-span-4">
-                <Button
-                    type="submit"
-                    size="sm"
-                    disabled={form.processing}
-                >
+                <Button type="submit" size="sm" disabled={form.processing}>
                     <PackageCheck />
                     Record Bid Opening
                 </Button>
@@ -349,10 +345,7 @@ export default function BidSubmissionIndex({
                                 </select>
                                 {form.errors.bidder_participation_id && (
                                     <p className="text-destructive text-xs">
-                                        {
-                                            form.errors
-                                                .bidder_participation_id
-                                        }
+                                        {form.errors.bidder_participation_id}
                                     </p>
                                 )}
                             </div>
@@ -512,9 +505,7 @@ export default function BidSubmissionIndex({
                                                 <span className="text-muted-foreground">
                                                     Opened:{' '}
                                                 </span>
-                                                {dateTime(
-                                                    submission.opened_at,
-                                                )}
+                                                {dateTime(submission.opened_at)}
                                             </div>
                                             <div>
                                                 <span className="text-muted-foreground">
@@ -553,9 +544,7 @@ export default function BidSubmissionIndex({
                                                     <span className="text-muted-foreground">
                                                         Remarks:{' '}
                                                     </span>
-                                                    {
-                                                        submission.opening_remarks
-                                                    }
+                                                    {submission.opening_remarks}
                                                 </div>
                                             )}
                                         </div>
