@@ -65,7 +65,8 @@ class BidderParticipationController extends Controller
         $this->guardMutable($round);
 
         $data = $request->validated();
-        $supplier = Supplier::query()->findOrFail($data['supplier_id']);
+        $supplierId = (int) $data['supplier_id'];
+        $supplier = Supplier::query()->whereKey($supplierId)->firstOrFail();
 
         DB::transaction(function () use ($round, $supplier, $request, $data): void {
             $lockedRound = ProcurementRound::query()
