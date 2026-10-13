@@ -9,11 +9,13 @@ use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\Ppmp;
 use App\Domain\Procurement\Enums\BidderParticipationStatus;
+use App\Domain\Procurement\Enums\BidSubmissionStatus;
 use App\Domain\Procurement\Enums\ProcurementActivityStatus;
 use App\Domain\Procurement\Enums\ProcurementActivityType;
 use App\Domain\Procurement\Enums\ProcurementRoundStatus;
 use App\Domain\Procurement\Enums\ProcurementStatus;
 use App\Domain\Procurement\Models\BidderParticipation;
+use App\Domain\Procurement\Models\BidSubmission;
 use App\Domain\Procurement\Models\ProcurementActivity;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Domain\Procurement\Models\ProcurementProject;
@@ -579,4 +581,261 @@ test('failed procurement rounds keep bidder participation read only', function (
     $this->assertDatabaseMissing('bidder_participations', [
         'procurement_round_id' => $round->id,
     ]);
+});
+
+
+test('bid submission workspace is isolated to the users organization', function () {
+    $contextA = procurementRoundContext('BID-INDEX-A');
+    $contextB = procurementRoundContext('BID-INDEX-B');
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+    $this->actingAs($contextB['user'])
+        ->post(route('procurement.projects.rounds.store', $contextB['project']));
+
+    $roundA = ProcurementRound::query()
+        ->where('procurement_project_id', $contextA['project']->id)
+        ->firstOrFail();
+    $roundB = ProcurementRound::query()
+        ->where('procurement_project_id', $contextB['project']->id)
+        ->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.bids.index', [$contextA['project'], $roundA]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('procurement/bids/index')
+            ->where('project.reference_no', 'PROC-ROUND-BID-INDEX-A')
+            ->where('round.round_no', 1)
+            ->has('round.bid_submissions', 0));
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.bids.index', [$contextB['project'], $roundB]))
+        ->assertNotFound();
+});
+
+test('user can receive one sealed bid from a registered bidder', function () {
+    $context = procurementRoundContext('BID-RECEIVE');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BID-RECEIVE',
+        'legal_name' => 'Bid Receipt Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => '2027-05-01 08:00:00',
+        'created_by' => $context['user']->id,
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), [
+            'bidder_participation_id' => $participation->id,
+            'receipt_reference' => 'RECEIPT-001',
+            'package_reference' => 'SEALED-PKG-001',
+            'received_at' => '2027-05-10 09:30:00',
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.bids.index', [$context['project'], $round]));
+
+    $submission = BidSubmission::query()->firstOrFail();
+
+    expect($submission->bidder_participation_id)->toBe($participation->id)
+        ->and($submission->getRawOriginal('status'))->toBe(BidSubmissionStatus::Received->value)
+        ->and($submission->receipt_reference)->toBe('RECEIPT-001')
+        ->and($submission->package_reference)->toBe('SEALED-PKG-001')
+        ->and($submission->received_at?->format('Y-m-d H:i:s'))->toBe('2027-05-10 09:30:00')
+        ->and($submission->received_by)->toBe($context['user']->id);
+});
+
+test('withdrawn or duplicate bidder submissions are rejected', function () {
+    $context = procurementRoundContext('BID-GUARDS');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BID-GUARDS',
+        'legal_name' => 'Bid Guard Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $payload = [
+        'bidder_participation_id' => $participation->id,
+        'receipt_reference' => 'RECEIPT-GUARD',
+    ];
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), $payload)
+        ->assertRedirect();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), $payload)
+        ->assertSessionHasErrors(['bidder_participation_id']);
+
+    $participation->update([
+        'status' => BidderParticipationStatus::Withdrawn->value,
+        'withdrawn_at' => now(),
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), [
+            'bidder_participation_id' => $participation->id,
+            'receipt_reference' => 'RECEIPT-WITHDRAWN',
+        ])
+        ->assertSessionHasErrors(['bidder_participation_id']);
+
+    expect(BidSubmission::query()->count())->toBe(1);
+});
+
+test('user can open a received bid once and record observed opening data', function () {
+    $context = procurementRoundContext('BID-OPEN');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BID-OPEN',
+        'legal_name' => 'Bid Opening Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Received->value,
+        'receipt_reference' => 'OPEN-001',
+        'received_at' => '2027-05-10 09:30:00',
+        'received_by' => $context['user']->id,
+    ]);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.bids.open', [$context['project'], $round, $submission]), [
+            'opened_at' => '2027-05-10 10:00:00',
+            'bid_amount' => 950000,
+            'eligibility_documents_present' => true,
+            'technical_documents_present' => true,
+            'financial_documents_present' => true,
+            'bid_security_present' => false,
+            'opening_remarks' => 'Bid opened in public session; no evaluation decision recorded.',
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.bids.index', [$context['project'], $round]));
+
+    $submission->refresh();
+    $round->refresh();
+
+    expect($submission->getRawOriginal('status'))->toBe(BidSubmissionStatus::Opened->value)
+        ->and($submission->bid_amount)->toBe('950000.00')
+        ->and($submission->eligibility_documents_present)->toBeTrue()
+        ->and($submission->technical_documents_present)->toBeTrue()
+        ->and($submission->financial_documents_present)->toBeTrue()
+        ->and($submission->bid_security_present)->toBeFalse()
+        ->and($submission->opened_at?->format('Y-m-d H:i:s'))->toBe('2027-05-10 10:00:00')
+        ->and($submission->opened_by)->toBe($context['user']->id)
+        ->and($round->bid_opening_at?->format('Y-m-d H:i:s'))->toBe('2027-05-10 10:00:00');
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.bids.open', [$context['project'], $round, $submission]), [
+            'bid_amount' => 900000,
+            'eligibility_documents_present' => true,
+            'technical_documents_present' => true,
+            'financial_documents_present' => true,
+            'bid_security_present' => true,
+        ])
+        ->assertSessionHasErrors(['submission']);
+
+    expect($submission->fresh()?->bid_amount)->toBe('950000.00');
+});
+
+test('failed procurement rounds keep bid receipt and opening read only', function () {
+    $context = procurementRoundContext('BID-FAILED');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BID-FAILED',
+        'legal_name' => 'Failed Bid Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $participation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $supplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $supplier->supplier_code,
+        'supplier_name_snapshot' => $supplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
+    $submission = BidSubmission::query()->create([
+        'procurement_round_id' => $round->id,
+        'bidder_participation_id' => $participation->id,
+        'status' => BidSubmissionStatus::Received->value,
+        'received_at' => now(),
+        'received_by' => $context['user']->id,
+    ]);
+
+    $round->update([
+        'status' => ProcurementRoundStatus::Failed->value,
+        'failure_reason' => 'Round formally failed.',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), [
+            'bidder_participation_id' => $participation->id,
+        ])
+        ->assertSessionHasErrors(['bid']);
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.bids.open', [$context['project'], $round, $submission]), [
+            'bid_amount' => 800000,
+            'eligibility_documents_present' => true,
+            'technical_documents_present' => true,
+            'financial_documents_present' => true,
+            'bid_security_present' => true,
+        ])
+        ->assertSessionHasErrors(['bid']);
+
+    expect($submission->fresh()?->getRawOriginal('status'))->toBe(BidSubmissionStatus::Received->value);
 });
