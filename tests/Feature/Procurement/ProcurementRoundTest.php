@@ -583,7 +583,6 @@ test('failed procurement rounds keep bidder participation read only', function (
     ]);
 });
 
-
 test('bid submission workspace is isolated to the users organization', function () {
     $contextA = procurementRoundContext('BID-INDEX-A');
     $contextB = procurementRoundContext('BID-INDEX-B');
