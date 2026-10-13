@@ -390,7 +390,6 @@ test('failed procurement rounds keep their activity history read only', function
         ->toBe(ProcurementActivityStatus::Scheduled->value);
 });
 
-
 test('bidder workspace is isolated to the users organization', function () {
     $contextA = procurementRoundContext('BIDDER-INDEX-A');
     $contextB = procurementRoundContext('BIDDER-INDEX-B');
