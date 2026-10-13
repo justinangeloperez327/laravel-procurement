@@ -93,7 +93,9 @@ function CreateEvaluationForm({
                 .split('\n')
                 .map((criterion) => criterion.trim())
                 .filter(Boolean),
-        })).post(
+        }));
+
+        form.post(
             `/procurement/projects/${projectId}/rounds/${roundId}/eligibility`,
             {
                 preserveScroll: true,
