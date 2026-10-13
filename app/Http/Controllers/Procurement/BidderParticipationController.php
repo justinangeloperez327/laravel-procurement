@@ -112,7 +112,7 @@ class BidderParticipationController extends Controller
         }
 
         return to_route('procurement.projects.rounds.bidders.index', [$project, $round])
-            ->with('success', 'Bidder withdrawal recorded.');
+            ->with('success', 'Bidder withdrawal recorded successfully.');
     }
 
     private function guardRound(Request $request, ProcurementProject $project, ProcurementRound $round): int
