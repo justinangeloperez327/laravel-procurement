@@ -815,6 +815,23 @@ test('failed procurement rounds keep bid receipt and opening read only', functio
         'received_by' => $context['user']->id,
     ]);
 
+    $secondSupplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BID-FAILED-SECOND',
+        'legal_name' => 'Second Failed Bid Supplier',
+        'status' => 'active',
+    ]);
+
+    $secondParticipation = BidderParticipation::query()->create([
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $secondSupplier->id,
+        'status' => BidderParticipationStatus::Registered->value,
+        'supplier_code_snapshot' => $secondSupplier->supplier_code,
+        'supplier_name_snapshot' => $secondSupplier->legal_name,
+        'registered_at' => now(),
+        'created_by' => $context['user']->id,
+    ]);
+
     $round->update([
         'status' => ProcurementRoundStatus::Failed->value,
         'failure_reason' => 'Round formally failed.',
@@ -822,7 +839,7 @@ test('failed procurement rounds keep bid receipt and opening read only', functio
 
     $this->actingAs($context['user'])
         ->post(route('procurement.projects.rounds.bids.store', [$context['project'], $round]), [
-            'bidder_participation_id' => $participation->id,
+            'bidder_participation_id' => $secondParticipation->id,
         ])
         ->assertSessionHasErrors(['bid']);
 
