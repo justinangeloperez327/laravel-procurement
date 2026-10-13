@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, CalendarDays, Plus, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, FileCheck2, Plus, Users } from 'lucide-react';
 import ProcurementProjectController from '@/actions/App/Http/Controllers/Procurement/ProcurementProjectController';
 import ProcurementRoundController from '@/actions/App/Http/Controllers/Procurement/ProcurementRoundController';
 import Heading from '@/components/heading';
@@ -192,6 +192,18 @@ export default function ProcurementRoundsIndex({
                                                             >
                                                                 <Users />
                                                                 Bidders
+                                                            </Link>
+                                                        </Button>
+                                                        <Button
+                                                            asChild
+                                                            variant="outline"
+                                                            size="sm"
+                                                        >
+                                                            <Link
+                                                                href={`/procurement/projects/${project.id}/rounds/${round.id}/bids`}
+                                                            >
+                                                                <FileCheck2 />
+                                                                Bids
                                                             </Link>
                                                         </Button>
                                                     </div>
