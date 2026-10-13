@@ -63,4 +63,10 @@ class ProcurementRound extends Model
     {
         return $this->hasMany(BidderParticipation::class)->orderBy('registered_at');
     }
+
+    /** @return HasMany<BidSubmission, $this> */
+    public function bidSubmissions(): HasMany
+    {
+        return $this->hasMany(BidSubmission::class)->orderBy('received_at');
+    }
 }
