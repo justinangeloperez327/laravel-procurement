@@ -6,6 +6,7 @@ use App\Domain\Procurement\Enums\BidSubmissionStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class BidSubmission extends Model
 {
@@ -64,5 +65,11 @@ class BidSubmission extends Model
     public function opener(): BelongsTo
     {
         return $this->belongsTo(User::class, 'opened_by');
+    }
+
+    /** @return HasOne<BidEligibilityEvaluation, $this> */
+    public function eligibilityEvaluation(): HasOne
+    {
+        return $this->hasOne(BidEligibilityEvaluation::class);
     }
 }
