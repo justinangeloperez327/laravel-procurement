@@ -4,6 +4,7 @@ use App\Http\Controllers\Planning\AnnualProcurementPlanController;
 use App\Http\Controllers\Planning\MarketScopingController;
 use App\Http\Controllers\Planning\PlanningWorkflowController;
 use App\Http\Controllers\Planning\PpmpController;
+use App\Http\Controllers\Procurement\BidderParticipationController;
 use App\Http\Controllers\Procurement\ProcurementActivityController;
 use App\Http\Controllers\Procurement\ProcurementProjectController;
 use App\Http\Controllers\Procurement\ProcurementRoundController;
@@ -54,6 +55,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('projects.rounds.activities.store');
         Route::patch('projects/{project}/rounds/{round}/activities/{activity}/complete', [ProcurementActivityController::class, 'complete'])
             ->name('projects.rounds.activities.complete');
+
+        Route::get('projects/{project}/rounds/{round}/bidders', [BidderParticipationController::class, 'index'])
+            ->name('projects.rounds.bidders.index');
+        Route::post('projects/{project}/rounds/{round}/bidders', [BidderParticipationController::class, 'store'])
+            ->name('projects.rounds.bidders.store');
+        Route::patch('projects/{project}/rounds/{round}/bidders/{participation}/withdraw', [BidderParticipationController::class, 'withdraw'])
+            ->name('projects.rounds.bidders.withdraw');
     });
 });
 

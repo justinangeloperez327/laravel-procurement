@@ -9,13 +9,16 @@ use App\Domain\Planning\Enums\ProcurementCategory;
 use App\Domain\Planning\Models\AnnualProcurementPlan;
 use App\Domain\Planning\Models\Ppmp;
 use App\Domain\Procurement\Enums\ProcurementActivityStatus;
+use App\Domain\Procurement\Enums\BidderParticipationStatus;
 use App\Domain\Procurement\Enums\ProcurementActivityType;
 use App\Domain\Procurement\Enums\ProcurementRoundStatus;
 use App\Domain\Procurement\Enums\ProcurementStatus;
+use App\Domain\Procurement\Models\BidderParticipation;
 use App\Domain\Procurement\Models\ProcurementActivity;
 use App\Domain\Procurement\Models\ProcurementMethod;
 use App\Domain\Procurement\Models\ProcurementProject;
 use App\Domain\Procurement\Models\ProcurementRound;
+use App\Domain\Suppliers\Models\Supplier;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -385,4 +388,196 @@ test('failed procurement rounds keep their activity history read only', function
         ->toBe(1)
         ->and($activity->fresh()?->getRawOriginal('status'))
         ->toBe(ProcurementActivityStatus::Scheduled->value);
+});
+
+
+test('bidder workspace is isolated to the users organization', function () {
+    $contextA = procurementRoundContext('BIDDER-INDEX-A');
+    $contextB = procurementRoundContext('BIDDER-INDEX-B');
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+    $this->actingAs($contextB['user'])
+        ->post(route('procurement.projects.rounds.store', $contextB['project']));
+
+    $roundA = ProcurementRound::query()
+        ->where('procurement_project_id', $contextA['project']->id)
+        ->firstOrFail();
+    $roundB = ProcurementRound::query()
+        ->where('procurement_project_id', $contextB['project']->id)
+        ->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.bidders.index', [$contextA['project'], $roundA]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('procurement/bidders/index')
+            ->where('project.reference_no', 'PROC-ROUND-BIDDER-INDEX-A')
+            ->where('round.round_no', 1)
+            ->has('round.bidder_participations', 0));
+
+    $this->actingAs($contextA['user'])
+        ->get(route('procurement.projects.rounds.bidders.index', [$contextB['project'], $roundB]))
+        ->assertNotFound();
+});
+
+test('user can register an active supplier as a bidder with an audit snapshot', function () {
+    $context = procurementRoundContext('BIDDER-REGISTER');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-BIDDER-REGISTER',
+        'legal_name' => 'Registered Bidder Corporation',
+        'philgeps_registration_no' => 'PHILGEPS-12345',
+        'email' => 'bidder@example.test',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$context['project'], $round]), [
+            'supplier_id' => $supplier->id,
+            'representative_name' => 'Maria Santos',
+            'representative_email' => 'maria@example.test',
+            'representative_phone' => '+63 900 000 0000',
+        ])
+        ->assertRedirect(route('procurement.projects.rounds.bidders.index', [$context['project'], $round]));
+
+    $participation = BidderParticipation::query()->firstOrFail();
+
+    expect($participation->supplier_id)->toBe($supplier->id)
+        ->and($participation->getRawOriginal('status'))->toBe(BidderParticipationStatus::Registered->value)
+        ->and($participation->supplier_code_snapshot)->toBe('SUP-BIDDER-REGISTER')
+        ->and($participation->supplier_name_snapshot)->toBe('Registered Bidder Corporation')
+        ->and($participation->philgeps_registration_no_snapshot)->toBe('PHILGEPS-12345')
+        ->and($participation->representative_name)->toBe('Maria Santos')
+        ->and($participation->created_by)->toBe($context['user']->id)
+        ->and($participation->registered_at)->not->toBeNull();
+});
+
+test('supplier from another organization cannot register in the round', function () {
+    $contextA = procurementRoundContext('BIDDER-ORG-A');
+    $contextB = procurementRoundContext('BIDDER-ORG-B');
+
+    $foreignSupplier = Supplier::query()->create([
+        'organization_id' => $contextB['organization']->id,
+        'supplier_code' => 'SUP-FOREIGN',
+        'legal_name' => 'Foreign Organization Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.store', $contextA['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $this->actingAs($contextA['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$contextA['project'], $round]), [
+            'supplier_id' => $foreignSupplier->id,
+        ])
+        ->assertSessionHasErrors(['supplier_id']);
+
+    $this->assertDatabaseMissing('bidder_participations', [
+        'procurement_round_id' => $round->id,
+        'supplier_id' => $foreignSupplier->id,
+    ]);
+});
+
+test('supplier can participate only once in the same procurement round', function () {
+    $context = procurementRoundContext('BIDDER-DUPLICATE');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-DUPLICATE',
+        'legal_name' => 'Duplicate Test Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $payload = ['supplier_id' => $supplier->id];
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$context['project'], $round]), $payload)
+        ->assertRedirect();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$context['project'], $round]), $payload)
+        ->assertSessionHasErrors(['supplier_id']);
+
+    expect(BidderParticipation::query()
+        ->where('procurement_round_id', $round->id)
+        ->where('supplier_id', $supplier->id)
+        ->count())->toBe(1);
+});
+
+test('withdrawing a bidder preserves the participation record', function () {
+    $context = procurementRoundContext('BIDDER-WITHDRAW');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-WITHDRAW',
+        'legal_name' => 'Withdraw Test Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$context['project'], $round]), [
+            'supplier_id' => $supplier->id,
+        ]);
+
+    $participation = BidderParticipation::query()->firstOrFail();
+
+    $this->actingAs($context['user'])
+        ->patch(route('procurement.projects.rounds.bidders.withdraw', [$context['project'], $round, $participation]))
+        ->assertRedirect(route('procurement.projects.rounds.bidders.index', [$context['project'], $round]));
+
+    $participation->refresh();
+
+    expect($participation->getRawOriginal('status'))->toBe(BidderParticipationStatus::Withdrawn->value)
+        ->and($participation->withdrawn_at)->not->toBeNull()
+        ->and($participation->updated_by)->toBe($context['user']->id)
+        ->and(BidderParticipation::query()->count())->toBe(1);
+});
+
+test('failed procurement rounds keep bidder participation read only', function () {
+    $context = procurementRoundContext('BIDDER-FAILED');
+
+    $supplier = Supplier::query()->create([
+        'organization_id' => $context['organization']->id,
+        'supplier_code' => 'SUP-FAILED',
+        'legal_name' => 'Failed Round Supplier',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.store', $context['project']));
+
+    $round = ProcurementRound::query()->firstOrFail();
+    $round->update([
+        'status' => ProcurementRoundStatus::Failed->value,
+        'failure_reason' => 'Round formally failed.',
+    ]);
+
+    $this->actingAs($context['user'])
+        ->post(route('procurement.projects.rounds.bidders.store', [$context['project'], $round]), [
+            'supplier_id' => $supplier->id,
+        ])
+        ->assertSessionHasErrors(['bidder']);
+
+    $this->assertDatabaseMissing('bidder_participations', [
+        'procurement_round_id' => $round->id,
+    ]);
 });

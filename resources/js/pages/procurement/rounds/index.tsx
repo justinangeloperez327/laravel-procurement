@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { ArrowLeft, CalendarDays, Plus } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Plus, Users } from 'lucide-react';
 import ProcurementProjectController from '@/actions/App/Http/Controllers/Procurement/ProcurementProjectController';
 import ProcurementRoundController from '@/actions/App/Http/Controllers/Procurement/ProcurementRoundController';
 import Heading from '@/components/heading';
@@ -169,18 +169,32 @@ export default function ProcurementRoundsIndex({
                                                     {round.reference_no ?? '—'}
                                                 </td>
                                                 <td className="px-4 py-3 text-right">
-                                                    <Button
-                                                        asChild
-                                                        variant="outline"
-                                                        size="sm"
-                                                    >
-                                                        <Link
-                                                            href={`/procurement/projects/${project.id}/rounds/${round.id}/activities`}
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            asChild
+                                                            variant="outline"
+                                                            size="sm"
                                                         >
-                                                            <CalendarDays />
-                                                            Activities
-                                                        </Link>
-                                                    </Button>
+                                                            <Link
+                                                                href={`/procurement/projects/${project.id}/rounds/${round.id}/activities`}
+                                                            >
+                                                                <CalendarDays />
+                                                                Activities
+                                                            </Link>
+                                                        </Button>
+                                                        <Button
+                                                            asChild
+                                                            variant="outline"
+                                                            size="sm"
+                                                        >
+                                                            <Link
+                                                                href={`/procurement/projects/${project.id}/rounds/${round.id}/bidders`}
+                                                            >
+                                                                <Users />
+                                                                Bidders
+                                                            </Link>
+                                                        </Button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
