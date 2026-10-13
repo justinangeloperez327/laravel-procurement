@@ -96,7 +96,7 @@ class EligibilityEvaluationController extends Controller
         });
 
         return to_route('procurement.projects.rounds.eligibility.index', [$project, $round])
-            ->with('success', 'Eligibility evaluation checklist created.');
+            ->with('success', 'Eligibility checklist created.');
     }
 
     public function finalize(
