@@ -274,10 +274,7 @@ function FinalizeEvaluationForm({
                         rows={3}
                         value={form.data.decision_remarks}
                         onChange={(event) =>
-                            form.setData(
-                                'decision_remarks',
-                                event.target.value,
-                            )
+                            form.setData('decision_remarks', event.target.value)
                         }
                         className="border-input bg-background placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-md border px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
                         placeholder="Required when recording an ineligible decision"
@@ -350,8 +347,8 @@ export default function EligibilityEvaluationIndex({
                                 No opened bids available for evaluation
                             </p>
                             <p className="text-muted-foreground max-w-2xl text-sm">
-                                Eligibility evaluation becomes available after
-                                a bid has been formally opened.
+                                Eligibility evaluation becomes available after a
+                                bid has been formally opened.
                             </p>
                         </div>
                     ) : (
